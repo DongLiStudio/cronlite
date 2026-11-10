@@ -43,7 +43,7 @@ func (h *Handler) jobsPage(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, withPage(r, last), http.StatusSeeOther)
 		return
 	}
-	data := h.authPage(auth, "Job Control Center")
+	data := h.authPage(auth, "定时任务")
 	data.LiveSearchIntegrity = jobsScriptIntegrity
 	data.Fleet, data.Page, data.Form.Name = fleet, page, filter.Name
 	data.Jobs = fleet.Jobs
@@ -74,7 +74,7 @@ func (h *Handler) createJobPage(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
-	data := h.authPage(auth, "Create job")
+	data := h.authPage(auth, "创建任务")
 	data.Form = jobFormValues{Timezone: "UTC", TimeoutSeconds: "30", CronExpression: r.URL.Query().Get("cron_expression")}
 	if timezone := r.URL.Query().Get("timezone"); timezone != "" {
 		data.Form.Timezone = timezone
@@ -89,7 +89,7 @@ func (h *Handler) createJob(w http.ResponseWriter, r *http.Request) {
 	}
 	input, values, err := parseCreateJobForm(r)
 	if err != nil {
-		data := h.authPage(auth, "Create job")
+		data := h.authPage(auth, "创建任务")
 		data.Form, data.Error = values, err.Error()
 		h.renderStatus(w, "job_form", data, http.StatusUnprocessableEntity)
 		return
@@ -97,7 +97,7 @@ func (h *Handler) createJob(w http.ResponseWriter, r *http.Request) {
 	job, _, err := h.service.CreateJob(r.Context(), input)
 	if err != nil {
 		if isUserError(err) {
-			data := h.authPage(auth, "Create job")
+			data := h.authPage(auth, "创建任务")
 			data.Form, data.Error = values, userErrorText(err)
 			h.renderStatus(w, "job_form", data, http.StatusUnprocessableEntity)
 			return
@@ -166,7 +166,7 @@ func (h *Handler) jobPage(w http.ResponseWriter, r *http.Request) {
 	data.Job, data.Schedule, data.Tags = job, schedule, tags
 	data.Notice, data.NextRuns = noticeText(r.URL.Query().Get("notice")), nextRuns
 	if errors.Is(nextErr, domain.ErrInvalidCronExpression) {
-		data.Error = "This schedule has no calculable next run. Check the cron expression and timezone."
+		data.Error = "该计划无法计算下次运行时间，请检查 Cron 表达式和时区。"
 	}
 	data.ExecutionStatusFilter = r.URL.Query().Get("status")
 	data.TriggerTypeFilter = r.URL.Query().Get("trigger_type")
@@ -195,7 +195,7 @@ func (h *Handler) editJobPage(w http.ResponseWriter, r *http.Request) {
 		h.handleServiceError(w, r, err)
 		return
 	}
-	data := h.authPage(auth, "Edit "+job.Name)
+	data := h.authPage(auth, "编辑 "+job.Name)
 	data.ReturnURL = safeReturn(r.URL.Query().Get("return"))
 	data.Job, data.Edit = job, true
 	data.Form = jobFormValues{
@@ -217,7 +217,7 @@ func (h *Handler) editJob(w http.ResponseWriter, r *http.Request) {
 	}
 	input, values, err := parseUpdateJobForm(r)
 	if err != nil {
-		data := h.authPage(auth, "Edit job")
+		data := h.authPage(auth, "编辑任务")
 		data.ReturnURL = safeReturn(r.FormValue("return"))
 		data.Job.ID, data.Edit, data.Form, data.Error = id, true, values, err.Error()
 		h.renderStatus(w, "job_form", data, http.StatusUnprocessableEntity)
@@ -225,7 +225,7 @@ func (h *Handler) editJob(w http.ResponseWriter, r *http.Request) {
 	}
 	if _, _, err := h.service.UpdateJob(r.Context(), id, input); err != nil {
 		if isUserError(err) {
-			data := h.authPage(auth, "Edit job")
+			data := h.authPage(auth, "编辑任务")
 			data.ReturnURL = safeReturn(r.FormValue("return"))
 			data.Job.ID, data.Edit, data.Form, data.Error = id, true, values, userErrorText(err)
 			h.renderStatus(w, "job_form", data, http.StatusUnprocessableEntity)
@@ -251,7 +251,7 @@ func (h *Handler) deleteJobPage(w http.ResponseWriter, r *http.Request) {
 		h.handleServiceError(w, r, err)
 		return
 	}
-	data := h.authPage(auth, "Delete "+job.Name)
+	data := h.authPage(auth, "删除 "+job.Name)
 	data.ReturnURL = safeReturn(r.URL.Query().Get("return"))
 	data.Job, data.Schedule = job, schedule
 	h.render(w, "delete_job", data)
@@ -322,7 +322,7 @@ func (h *Handler) executionPage(w http.ResponseWriter, r *http.Request) {
 		h.handleServiceError(w, r, err)
 		return
 	}
-	data := h.authPage(auth, "Execution "+execution.ID.String())
+	data := h.authPage(auth, "执行记录 "+execution.ID.String())
 	data.ReturnURL = safeReturn(r.URL.Query().Get("return"))
 	data.Execution, data.Attempts = execution, attempts
 	h.render(w, "execution", data)

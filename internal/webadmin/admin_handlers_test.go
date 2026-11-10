@@ -56,7 +56,7 @@ func TestKeysListPaginationAndSecretIsolation(t *testing.T) {
 	if rec.Code != 200 || svc.bootstrapNS != "team" || svc.keyListParams.Offset != 25 {
 		t.Fatal("key list is not namespace scoped or paginated")
 	}
-	if n := strings.Count(rec.Body.String(), "Revoke key"); n != 25 {
+	if n := strings.Count(rec.Body.String(), "撤销密钥"); n != 25 {
 		t.Fatalf("rows: %d", n)
 	}
 	if strings.Contains(rec.Body.String(), "do-not-render") || !strings.Contains(rec.Body.String(), "page=3") {
@@ -130,7 +130,7 @@ func TestWorkspacePagesAndScheduleValidation(t *testing.T) {
 		if rec.Code != 200 {
 			t.Fatalf("%s: %d", path, rec.Code)
 		}
-		if path == "/admin/onboarding" && !strings.Contains(rec.Body.String(), "Skip onboarding") {
+		if path == "/admin/onboarding" && !strings.Contains(rec.Body.String(), "跳过引导") {
 			t.Fatal("onboarding cannot be skipped")
 		}
 	}

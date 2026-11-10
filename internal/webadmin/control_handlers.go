@@ -290,7 +290,7 @@ func (h *Handler) runsPage(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, withPage(r, last), http.StatusSeeOther)
 		return
 	}
-	data := h.authPage(auth, "Runs")
+	data := h.authPage(auth, "运行记录")
 	data.Page, data.RunsTotal, data.Window, data.View = page, runs.Total, window, view
 	data.ExecutionStatusFilter, data.TriggerTypeFilter = r.URL.Query().Get("status"), r.URL.Query().Get("trigger_type")
 	data.ReturnURL = safeReturn(r.URL.RequestURI())
@@ -301,7 +301,7 @@ func (h *Handler) runsPage(w http.ResponseWriter, r *http.Request) {
 	}
 	data.Runs = runs.Runs
 	data.PreviousURL, data.NextURL = paginationURLs(r, page, hasNext)
-	for _, column := range []runColumn{{Status: "emitted", Label: "Queued (emitted)"}, {Status: "in_progress", Label: "In progress"}, {Status: "delivered", Label: "Delivered"}, {Status: "failed", Label: "Failed"}} {
+	for _, column := range []runColumn{{Status: "emitted", Label: "已排队"}, {Status: "in_progress", Label: "执行中"}, {Status: "delivered", Label: "已送达"}, {Status: "failed", Label: "失败"}} {
 		for i := range data.Runs {
 			run := &data.Runs[i]
 			if string(run.Execution.Status) == column.Status {
@@ -378,7 +378,7 @@ func (h *Handler) bulkPage(w http.ResponseWriter, r *http.Request) {
 		h.controlError(w, r, err)
 		return
 	}
-	data := h.authPage(auth, "Bulk "+batch.Action)
+	data := h.authPage(auth, bulkActionText(batch.Action))
 	data.Batch = batch
 	data.ReturnURL = safeReturn(r.URL.Query().Get("return"))
 	for _, item := range batch.Items {
@@ -423,18 +423,18 @@ func (h *Handler) bulkHistory(w http.ResponseWriter, r *http.Request) {
 		h.internalError(w, r, err)
 		return
 	}
-	data := h.authPage(auth, "Bulk action history")
+	data := h.authPage(auth, "批量操作历史")
 	data.Batches = batches
 	h.render(w, "bulk_history", data)
 }
 func (h *Handler) controlError(w http.ResponseWriter, r *http.Request, err error) {
 	switch {
 	case errors.Is(err, domain.ErrInvalidControlInput):
-		h.renderStatus(w, "error", pageData{Title: "Invalid input", Error: "Check the filters or selection. Select 1–100 distinct jobs and choose pause or resume. Previews expire after 10 minutes; keep at most 20 pending previews."}, http.StatusBadRequest)
+		h.renderStatus(w, "error", pageData{Title: "输入无效", Error: "请检查筛选条件或选择内容。请选择 1–100 个不同任务，并执行暂停或恢复；预览将在 10 分钟后过期，最多保留 20 个待确认预览。"}, http.StatusBadRequest)
 	case errors.Is(err, domain.ErrBulkNotFound), errors.Is(err, domain.ErrJobNotFound), errors.Is(err, domain.ErrAPIKeyNotFound):
-		h.renderStatus(w, "error", pageData{Title: "Not found", Error: "The requested item is unavailable or the preview has expired."}, http.StatusNotFound)
+		h.renderStatus(w, "error", pageData{Title: "未找到", Error: "请求的内容不存在，或预览已过期。"}, http.StatusNotFound)
 	case errors.Is(err, domain.ErrSavedViewLimit):
-		h.renderStatus(w, "error", pageData{Title: "Saved view limit", Error: "You can save up to 20 views per API key. Remove a view before adding another."}, http.StatusConflict)
+		h.renderStatus(w, "error", pageData{Title: "已保存视图数量已达上限", Error: "每个 API 密钥最多保存 20 个视图。请先删除一个视图再新增。"}, http.StatusConflict)
 	default:
 		h.internalError(w, r, err)
 	}
@@ -442,16 +442,16 @@ func (h *Handler) controlError(w http.ResponseWriter, r *http.Request, err error
 func bulkResultText(result string) string {
 	switch result {
 	case "applied":
-		return "Applied"
+		return "已应用"
 	case "unchanged":
-		return "Already in requested state"
+		return "已处于目标状态"
 	case "conflict":
-		return "Changed since preview; select again"
+		return "预览后已发生变化，请重新选择"
 	case "unavailable":
-		return "Job no longer available"
+		return "任务已不存在"
 	case "failed":
-		return "Failed; select again to retry"
+		return "失败，请重新选择后重试"
 	default:
-		return "Awaiting confirmation"
+		return "等待确认"
 	}
 }

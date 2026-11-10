@@ -221,7 +221,7 @@ func TestIntegrationNamespaceIsolationAndJobCRUD(t *testing.T) {
 		t.Fatalf("pause status = %d, want 303", response.StatusCode)
 	}
 	response, body = integrationGet(t, clientA, server.URL+"/admin/jobs/"+jobA.String())
-	if response.StatusCode != http.StatusOK || !strings.Contains(body, "Paused") {
+	if response.StatusCode != http.StatusOK || !strings.Contains(body, "已暂停") {
 		t.Fatal("paused job detail did not show paused state")
 	}
 	response = postIntegrationJobAction(t, clientA, server.URL, jobA, "resume")

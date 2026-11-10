@@ -1,91 +1,91 @@
 {{define "jobs"}}
 {{template "head" .}}{{template "nav" .}}
 <main id="main"><div class="page">
-  <div class="page-head"><div><h1>Jobs</h1><p>Recurring webhooks in namespace <code>{{.Namespace}}</code>.</p></div>
-    <div class="actions"><a class="btn btn-primary" href="/admin/jobs/new">{{icon "plus"}}Create job</a></div></div>
+  <div class="page-head"><div><h1>定时任务</h1><p>工作空间 <code>{{.Namespace}}</code> 中的周期 Webhook。</p></div>
+    <div class="actions"><a class="btn btn-primary" href="/admin/jobs/new">{{icon "plus"}}创建定时任务</a></div></div>
   {{template "messages" .}}
-  <section id="fleet-counts" class="stats" aria-label="Fleet counts">
-    <a class="stat" href="/admin/jobs?view={{.View}}"{{if eq .EnabledFilter ""}} aria-current="true"{{end}}><span>Total jobs</span><strong>{{.Fleet.Total}}</strong></a>
-    <a class="stat" href="/admin/jobs?view={{.View}}&amp;enabled=true"{{if eq .EnabledFilter "true"}} aria-current="true"{{end}}><span>Active</span><strong>{{.Fleet.Active}}</strong></a>
-    <a class="stat" href="/admin/jobs?view={{.View}}&amp;enabled=false"{{if eq .EnabledFilter "false"}} aria-current="true"{{end}}><span>Paused</span><strong>{{.Fleet.Paused}}</strong></a>
-    <div class="stat"><span>Matching filters</span><strong>{{.Fleet.Matched}}</strong></div>
+  <section id="fleet-counts" class="stats" aria-label="任务统计">
+    <a class="stat" href="/admin/jobs?view={{.View}}"{{if eq .EnabledFilter ""}} aria-current="true"{{end}}><span>任务总数</span><strong>{{.Fleet.Total}}</strong></a>
+    <a class="stat" href="/admin/jobs?view={{.View}}&amp;enabled=true"{{if eq .EnabledFilter "true"}} aria-current="true"{{end}}><span>已启用</span><strong>{{.Fleet.Active}}</strong></a>
+    <a class="stat" href="/admin/jobs?view={{.View}}&amp;enabled=false"{{if eq .EnabledFilter "false"}} aria-current="true"{{end}}><span>已暂停</span><strong>{{.Fleet.Paused}}</strong></a>
+    <div class="stat"><span>筛选结果</span><strong>{{.Fleet.Matched}}</strong></div>
   </section>
   <section class="card">
     <form id="fleet-filters" class="toolbar" method="get" action="/admin/jobs" role="search">
       <input type="hidden" name="view" value="{{.View}}">
-      <div class="grow"><label for="name">Search jobs</label><div class="search">{{icon "search"}}<input id="name" name="name" type="search" maxlength="200" value="{{.Form.Name}}" placeholder="Job name"></div></div>
-      <div><label for="enabled">Fleet state</label><select id="enabled" name="enabled"><option value=""{{if eq .EnabledFilter ""}} selected{{end}}>All jobs</option><option value="true"{{if eq .EnabledFilter "true"}} selected{{end}}>Active</option><option value="false"{{if eq .EnabledFilter "false"}} selected{{end}}>Paused</option></select></div>
-      <div><label for="tag">Tag</label><input id="tag" name="tag" type="text" maxlength="200" value="{{.TagFilter}}" placeholder="team=payments"></div>
-      <button class="btn btn-secondary" type="submit">Filter</button>
-      <a class="btn btn-secondary" href="/admin/jobs?view={{.View}}">Clear</a>
+      <div class="grow"><label for="name">搜索任务</label><div class="search">{{icon "search"}}<input id="name" name="name" type="search" maxlength="200" value="{{.Form.Name}}" placeholder="任务名称"></div></div>
+      <div><label for="enabled">任务状态</label><select id="enabled" name="enabled"><option value=""{{if eq .EnabledFilter ""}} selected{{end}}>全部任务</option><option value="true"{{if eq .EnabledFilter "true"}} selected{{end}}>已启用</option><option value="false"{{if eq .EnabledFilter "false"}} selected{{end}}>已暂停</option></select></div>
+      <div><label for="tag">标签</label><input id="tag" name="tag" type="text" maxlength="200" value="{{.TagFilter}}" placeholder="team=payments"></div>
+      <button class="btn btn-secondary" type="submit">筛选</button>
+      <a class="btn btn-secondary" href="/admin/jobs?view={{.View}}">清除</a>
     </form>
     <p id="search-feedback" class="search-feedback" role="status" aria-live="polite"></p>
     <div id="fleet-results">
       <div class="view-bar">
-        <nav class="tabs" aria-label="Job views"><a href="{{.TableURL}}"{{if eq .View "table"}} aria-current="page"{{end}}>Table</a><a href="{{.BoardURL}}"{{if eq .View "board"}} aria-current="page"{{end}}>Board</a><a href="{{.TimelineURL}}"{{if eq .View "timeline"}} aria-current="page"{{end}}>Timeline</a></nav>
-        <details class="menu saved-views"><summary class="btn btn-secondary btn-sm">{{icon "bookmark"}}Saved views · {{len .SavedViews}}</summary>
+        <nav class="tabs" aria-label="任务视图"><a href="{{.TableURL}}"{{if eq .View "table"}} aria-current="page"{{end}}>表格</a><a href="{{.BoardURL}}"{{if eq .View "board"}} aria-current="page"{{end}}>看板</a><a href="{{.TimelineURL}}"{{if eq .View "timeline"}} aria-current="page"{{end}}>时间线</a></nav>
+        <details class="menu saved-views"><summary class="btn btn-secondary btn-sm">{{icon "bookmark"}}已保存视图 · {{len .SavedViews}}</summary>
           <div class="menu-pop">
-            <div class="saved-list">{{range .SavedViews}}<div><a href="/admin/jobs?{{.Query}}">{{.Name}}</a><form method="post" action="/admin/views/{{.ID}}/delete"><input type="hidden" name="csrf_token" value="{{$.CSRFToken}}"><input type="hidden" name="return" value="{{$.ReturnURL}}"><button class="link-button" type="submit" aria-label="Remove saved view {{.Name}}">Remove</button></form></div>{{else}}<p class="help pad-x">No saved views yet.</p>{{end}}</div>
+            <div class="saved-list">{{range .SavedViews}}<div><a href="/admin/jobs?{{.Query}}">{{.Name}}</a><form method="post" action="/admin/views/{{.ID}}/delete"><input type="hidden" name="csrf_token" value="{{$.CSRFToken}}"><input type="hidden" name="return" value="{{$.ReturnURL}}"><button class="link-button" type="submit" aria-label="删除已保存视图 {{.Name}}">删除</button></form></div>{{else}}<p class="help pad-x">尚未保存任何视图。</p>{{end}}</div>
             <hr>
-            <form class="save-form" method="post" action="/admin/views"><input type="hidden" name="csrf_token" value="{{.CSRFToken}}"><input type="hidden" name="query" value="{{.StateQuery}}"><input type="hidden" name="return" value="{{.ReturnURL}}"><label for="view_name">Save current filters</label><input id="view_name" name="view_name" type="text" maxlength="80" required placeholder="View name"><button class="btn btn-secondary btn-sm" type="submit">Save view</button>
-              <p class="help">Private to this API key and namespace. Anyone using the same key shares these views.</p></form>
+            <form class="save-form" method="post" action="/admin/views"><input type="hidden" name="csrf_token" value="{{.CSRFToken}}"><input type="hidden" name="query" value="{{.StateQuery}}"><input type="hidden" name="return" value="{{.ReturnURL}}"><label for="view_name">保存当前筛选</label><input id="view_name" name="view_name" type="text" maxlength="80" required placeholder="视图名称"><button class="btn btn-secondary btn-sm" type="submit">保存视图</button>
+              <p class="help">仅当前 API 密钥和工作空间可见；使用同一密钥的人会共享这些视图。</p></form>
           </div>
         </details>
         <span class="spacer"></span>
-        <a class="small" href="/admin/bulk">Bulk action history</a>
+        <a class="small" href="/admin/bulk">批量操作历史</a>
       </div>
   {{if eq .View "timeline"}}
-      <div class="card-head"><div><h2>Next scheduled runs</h2><p>Next occurrence per active job, through {{formatTime .TimelineUntil}}. These are schedule estimates, not executions.</p></div></div>
-      {{if .TimelineLimited}}<div class="callout info inset">{{icon "info"}}<p>Showing up to 50 next runs from at most 500 matching jobs. Narrow the filters to see the rest.</p></div>{{end}}
-      {{if .TimelineInvalid}}<div class="callout warn inset">{{icon "alert"}}<p>{{.TimelineInvalid}} active jobs have an invalid schedule or no calculable next occurrence.</p></div>{{end}}
-      <div class="table-wrap"><table><thead><tr><th>Next run (UTC)</th><th>Job</th><th>Schedule</th><th>Timezone</th></tr></thead><tbody>{{range .Timeline}}<tr><td class="mono">{{formatTime .Next}}</td><td><a class="row-link" href="{{jobURL .Job.ID $.ReturnURL}}">{{.Job.Name}}</a></td><td><span title="Cron: {{.Schedule.CronExpression}}">{{scheduleText .Schedule.CronExpression}}</span></td><td>{{.Schedule.Timezone}}</td></tr>{{else}}<tr><td class="empty" colspan="4">No next runs in the next 24 hours for these filters.</td></tr>{{end}}</tbody></table></div>
+      <div class="card-head"><div><h2>接下来的运行时间</h2><p>显示每个已启用任务在 {{formatTime .TimelineUntil}} 前的下一次运行。这里只做计划估算，不代表已经执行。</p></div></div>
+      {{if .TimelineLimited}}<div class="callout info inset">{{icon "info"}}<p>最多从 500 个匹配任务中展示 50 次即将运行。缩小筛选范围可查看其余结果。</p></div>{{end}}
+      {{if .TimelineInvalid}}<div class="callout warn inset">{{icon "alert"}}<p>{{.TimelineInvalid}} 个已启用任务的运行计划无效，或无法计算下一次运行时间。</p></div>{{end}}
+      <div class="table-wrap"><table><thead><tr><th>下次运行（UTC）</th><th>任务</th><th>运行计划</th><th>时区</th></tr></thead><tbody>{{range .Timeline}}<tr><td class="mono">{{formatTime .Next}}</td><td><a class="row-link" href="{{jobURL .Job.ID $.ReturnURL}}">{{.Job.Name}}</a></td><td><span title="Cron：{{.Schedule.CronExpression}}">{{scheduleText .Schedule.CronExpression}}</span></td><td>{{.Schedule.Timezone}}</td></tr>{{else}}<tr><td class="empty" colspan="4">这些筛选条件下，未来 24 小时内没有待运行任务。</td></tr>{{end}}</tbody></table></div>
   {{else}}
-      <form id="bulk" class="bulkbar" method="post" action="/admin/bulk/preview"><input type="hidden" name="csrf_token" value="{{.CSRFToken}}"><input type="hidden" name="return" value="{{.ReturnURL}}"><span>Select jobs on this page, then preview an action.{{if eq .View "table"}} Click a row for details.{{end}}</span><button class="btn btn-secondary btn-sm" name="action" value="pause" type="submit">{{icon "pause"}}Preview pause</button><button class="btn btn-secondary btn-sm" name="action" value="resume" type="submit">{{icon "play"}}Preview resume</button></form>
+      <form id="bulk" class="bulkbar" method="post" action="/admin/bulk/preview"><input type="hidden" name="csrf_token" value="{{.CSRFToken}}"><input type="hidden" name="return" value="{{.ReturnURL}}"><span>勾选当前页任务，然后预览操作。{{if eq .View "table"}}点击行可展开详情。{{end}}</span><button class="btn btn-secondary btn-sm" name="action" value="pause" type="submit">{{icon "pause"}}预览暂停</button><button class="btn btn-secondary btn-sm" name="action" value="resume" type="submit">{{icon "play"}}预览恢复</button></form>
     {{if eq .View "board"}}
       <div class="board inset-pad">
-        <section class="column"><h2><span class="badge ok">Active</span><span class="muted small">{{.Fleet.Active}} fleet-wide</span></h2>{{range .Jobs}}{{if .Job.Enabled}}{{template "job_card" (jobCardData . $)}}{{end}}{{end}}</section>
-        <section class="column"><h2><span class="badge">Paused</span><span class="muted small">{{.Fleet.Paused}} fleet-wide</span></h2>{{range .Jobs}}{{if not .Job.Enabled}}{{template "job_card" (jobCardData . $)}}{{end}}{{end}}</section>
+        <section class="column"><h2><span class="badge ok">已启用</span><span class="muted small">全空间 {{.Fleet.Active}} 个</span></h2>{{range .Jobs}}{{if .Job.Enabled}}{{template "job_card" (jobCardData . $)}}{{end}}{{end}}</section>
+        <section class="column"><h2><span class="badge">已暂停</span><span class="muted small">全空间 {{.Fleet.Paused}} 个</span></h2>{{range .Jobs}}{{if not .Job.Enabled}}{{template "job_card" (jobCardData . $)}}{{end}}{{end}}</section>
       </div>
-      {{if not .Jobs}}<div class="empty"><strong>No jobs found.</strong>Change the filters or create a job.</div>{{end}}
-      <p class="help pad-x">Board cards show the current filtered page.</p>
+      {{if not .Jobs}}<div class="empty"><strong>未找到定时任务。</strong>请调整筛选条件或创建任务。</div>{{end}}
+      <p class="help pad-x">看板仅显示当前筛选页中的任务。</p>
     {{else}}
-      <div class="dgrid jobs-grid" role="table" aria-label="Jobs">
-        <div class="dhead" role="row"><span role="columnheader">Name</span><span role="columnheader">Status</span><span class="hide-sm" role="columnheader">Schedule</span><span class="hide-sm" role="columnheader">Next run</span><span><span class="sr">Details</span></span></div>
-        {{range .Jobs}}{{template "job_row" (jobCardData . $)}}{{else}}<div class="empty"><strong>No jobs found.</strong>Change the filters or create a job.</div>{{end}}
+      <div class="dgrid jobs-grid" role="table" aria-label="定时任务">
+        <div class="dhead" role="row"><span role="columnheader">名称</span><span role="columnheader">状态</span><span class="hide-sm" role="columnheader">运行计划</span><span class="hide-sm" role="columnheader">下次运行</span><span><span class="sr">详情</span></span></div>
+        {{range .Jobs}}{{template "job_row" (jobCardData . $)}}{{else}}<div class="empty"><strong>未找到定时任务。</strong>请调整筛选条件或创建任务。</div>{{end}}
       </div>
     {{end}}
-      <nav class="pagination" aria-label="Jobs pages"><span>Page {{.Page}} of {{.TotalPages}} · {{len .Jobs}} shown · {{.Fleet.Matched}} matching</span>
-        <span class="pages">{{if .PreviousURL}}<a class="btn btn-secondary btn-sm" href="{{.PreviousURL}}">Previous</a>{{end}}{{range .PageLinks}}{{if .Current}}<span aria-current="page">{{.Number}}</span>{{else}}<a href="{{.URL}}" aria-label="Page {{.Number}}">{{.Number}}</a>{{end}}{{end}}{{if .NextURL}}<a class="btn btn-secondary btn-sm" href="{{.NextURL}}">Next</a>{{end}}</span></nav>
+      <nav class="pagination" aria-label="定时任务分页"><span>第 {{.Page}} / {{.TotalPages}} 页 · 当前显示 {{len .Jobs}} 个 · 共匹配 {{.Fleet.Matched}} 个</span>
+        <span class="pages">{{if .PreviousURL}}<a class="btn btn-secondary btn-sm" href="{{.PreviousURL}}">上一页</a>{{end}}{{range .PageLinks}}{{if .Current}}<span aria-current="page">{{.Number}}</span>{{else}}<a href="{{.URL}}" aria-label="第 {{.Number}} 页">{{.Number}}</a>{{end}}{{end}}{{if .NextURL}}<a class="btn btn-secondary btn-sm" href="{{.NextURL}}">下一页</a>{{end}}</span></nav>
   {{end}}
     </div>
   </section>
 </div></main><script src="/admin/assets/jobs.js" integrity="{{.LiveSearchIntegrity}}" defer></script>{{template "foot" .}}{{end}}
 
 {{define "job_row"}}{{$next := nextRun .Row}}<div class="drow" role="row">
-<div class="cell-check"><input class="job-select" type="checkbox" name="job_id" value="{{.Row.Job.ID}}" form="bulk" aria-label="Select {{.Row.Job.Name}}"></div>
+<div class="cell-check"><input class="job-select" type="checkbox" name="job_id" value="{{.Row.Job.ID}}" form="bulk" aria-label="选择 {{.Row.Job.Name}}"></div>
 <details name="job-row"><summary class="dsum">
   <span class="c" role="cell"><a class="row-link" href="{{jobURL .Row.Job.ID .State}}">{{.Row.Job.Name}}</a></span>
-  <span class="c" role="cell">{{if .Row.Job.Enabled}}<span class="badge ok status-active">Active</span>{{else}}<span class="badge status-paused">Paused</span>{{end}}</span>
-  <span class="c hide-sm" role="cell" title="Cron: {{.Row.Schedule.CronExpression}}">{{scheduleText .Row.Schedule.CronExpression}}</span>
+  <span class="c" role="cell">{{if .Row.Job.Enabled}}<span class="badge ok status-active">已启用</span>{{else}}<span class="badge status-paused">已暂停</span>{{end}}</span>
+  <span class="c hide-sm" role="cell" title="Cron：{{.Row.Schedule.CronExpression}}">{{scheduleText .Row.Schedule.CronExpression}}</span>
   <span class="c hide-sm" role="cell"{{if $next.Exact}} title="{{$next.Exact}}"{{end}}>{{$next.Text}}</span>
   <span class="chev" aria-hidden="true">{{icon "chevron"}}</span>
 </summary>
 <div class="extra"><dl>
-  <div class="item only-sm"><dt>Schedule</dt><dd>{{scheduleText .Row.Schedule.CronExpression}}</dd></div>
-  <div class="item only-sm"><dt>Next run</dt><dd>{{$next.Text}}</dd></div>
+  <div class="item only-sm"><dt>运行计划</dt><dd>{{scheduleText .Row.Schedule.CronExpression}}</dd></div>
+  <div class="item only-sm"><dt>下次运行</dt><dd>{{$next.Text}}</dd></div>
   <div class="item wide at-1-2"><dt>Webhook</dt><dd><code>{{.Row.Job.Delivery.WebhookURL}}</code>{{with tailnetTarget .Namespace .Row.Job.Delivery.WebhookURL}}{{if .Tailnet}} {{template "tailnet_badge" .}}{{end}}{{end}}</dd></div>
-  <div class="item at-3"><dt>Cron · timezone</dt><dd><code>{{.Row.Schedule.CronExpression}}</code> · {{.Row.Schedule.Timezone}}</dd></div>
-  <div class="item at-4"><dt>Updated</dt><dd>{{formatTime .Row.Job.UpdatedAt}}</dd></div>
+  <div class="item at-3"><dt>Cron · 时区</dt><dd><code>{{.Row.Schedule.CronExpression}}</code> · {{.Row.Schedule.Timezone}}</dd></div>
+  <div class="item at-4"><dt>更新时间</dt><dd>{{formatTime .Row.Job.UpdatedAt}}</dd></div>
 </dl>
 <div class="row-actions">
-  <a class="btn btn-secondary btn-sm" href="{{jobURL .Row.Job.ID .State}}">Open job{{icon "arrow"}}</a>
-  <a class="btn btn-secondary btn-sm" href="/admin/jobs/{{.Row.Job.ID}}/edit?{{returnQuery .State}}">{{icon "edit"}}Edit</a>
+  <a class="btn btn-secondary btn-sm" href="{{jobURL .Row.Job.ID .State}}">打开任务{{icon "arrow"}}</a>
+  <a class="btn btn-secondary btn-sm" href="/admin/jobs/{{.Row.Job.ID}}/edit?{{returnQuery .State}}">{{icon "edit"}}编辑</a>
   {{if .Row.Job.Enabled}}
-  <form method="post" action="/admin/jobs/{{.Row.Job.ID}}/trigger"><input type="hidden" name="csrf_token" value="{{.CSRFToken}}"><input type="hidden" name="return" value="{{.State}}"><button class="btn btn-secondary btn-sm" type="submit">{{icon "zap"}}Run now</button></form>
-  <form method="post" action="/admin/jobs/{{.Row.Job.ID}}/pause"><input type="hidden" name="csrf_token" value="{{.CSRFToken}}"><input type="hidden" name="return" value="{{.State}}"><button class="btn btn-secondary btn-sm" type="submit">{{icon "pause"}}Pause</button></form>
+  <form method="post" action="/admin/jobs/{{.Row.Job.ID}}/trigger"><input type="hidden" name="csrf_token" value="{{.CSRFToken}}"><input type="hidden" name="return" value="{{.State}}"><button class="btn btn-secondary btn-sm" type="submit">{{icon "zap"}}立即运行</button></form>
+  <form method="post" action="/admin/jobs/{{.Row.Job.ID}}/pause"><input type="hidden" name="csrf_token" value="{{.CSRFToken}}"><input type="hidden" name="return" value="{{.State}}"><button class="btn btn-secondary btn-sm" type="submit">{{icon "pause"}}暂停</button></form>
   {{else}}
-  <form method="post" action="/admin/jobs/{{.Row.Job.ID}}/resume"><input type="hidden" name="csrf_token" value="{{.CSRFToken}}"><input type="hidden" name="return" value="{{.State}}"><button class="btn btn-secondary btn-sm" type="submit">{{icon "play"}}Resume</button></form>
+  <form method="post" action="/admin/jobs/{{.Row.Job.ID}}/resume"><input type="hidden" name="csrf_token" value="{{.CSRFToken}}"><input type="hidden" name="return" value="{{.State}}"><button class="btn btn-secondary btn-sm" type="submit">{{icon "play"}}恢复</button></form>
   {{end}}
 </div></div></details></div>{{end}}
 
-{{define "job_card"}}<article class="job-card"><div class="row"><h3><a class="row-link" href="{{jobURL .Row.Job.ID .State}}">{{.Row.Job.Name}}</a></h3><label class="check small"><input type="checkbox" form="bulk" name="job_id" value="{{.Row.Job.ID}}"><span class="sr">Select {{.Row.Job.Name}}</span></label></div><p><span title="Cron: {{.Row.Schedule.CronExpression}}">{{scheduleText .Row.Schedule.CronExpression}}</span> · {{.Row.Schedule.Timezone}}</p><p class="mono small break">{{with tailnetTarget .Namespace .Row.Job.Delivery.WebhookURL}}{{if .Tailnet}}{{template "tailnet_badge" .}} {{end}}{{end}}{{.Row.Job.Delivery.WebhookURL}}</p><p class="small">Updated {{formatTime .Row.Job.UpdatedAt}}</p></article>{{end}}
+{{define "job_card"}}<article class="job-card"><div class="row"><h3><a class="row-link" href="{{jobURL .Row.Job.ID .State}}">{{.Row.Job.Name}}</a></h3><label class="check small"><input type="checkbox" form="bulk" name="job_id" value="{{.Row.Job.ID}}"><span class="sr">选择 {{.Row.Job.Name}}</span></label></div><p><span title="Cron：{{.Row.Schedule.CronExpression}}">{{scheduleText .Row.Schedule.CronExpression}}</span> · {{.Row.Schedule.Timezone}}</p><p class="mono small break">{{with tailnetTarget .Namespace .Row.Job.Delivery.WebhookURL}}{{if .Tailnet}}{{template "tailnet_badge" .}} {{end}}{{end}}{{.Row.Job.Delivery.WebhookURL}}</p><p class="small">更新于 {{formatTime .Row.Job.UpdatedAt}}</p></article>{{end}}

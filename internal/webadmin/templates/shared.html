@@ -1,6 +1,6 @@
 {{define "head"}}
 <!doctype html>
-<html lang="en"{{if .Theme}} data-theme="{{.Theme}}"{{end}}>
+<html lang="zh-CN"{{if .Theme}} data-theme="{{.Theme}}"{{end}}>
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -9,44 +9,44 @@
   <link rel="stylesheet" href="/admin/assets/admin.css?v={{cssVersion}}">
 </head>
 <body>
-<a class="skip" href="#main">Skip to content</a>
+<a class="skip" href="#main">跳到主要内容</a>
 {{end}}
 
 {{define "nav_links"}}
-<div class="nav-group"><div class="nav-label">Operate</div>
-  <a href="/admin/jobs"{{if eq .Navigation "jobs"}} aria-current="page"{{end}}>{{icon "clock"}}Jobs</a>
-  <a href="/admin/runs"{{if eq .Navigation "runs"}} aria-current="page"{{end}}>{{icon "activity"}}Runs</a>
-  <a href="/admin/executions"{{if eq .Navigation "executions"}} aria-current="page"{{end}}>{{icon "list"}}Executions</a>
+<div class="nav-group"><div class="nav-label">运行管理</div>
+  <a href="/admin/jobs"{{if eq .Navigation "jobs"}} aria-current="page"{{end}}>{{icon "clock"}}定时任务</a>
+  <a href="/admin/runs"{{if eq .Navigation "runs"}} aria-current="page"{{end}}>{{icon "activity"}}运行记录</a>
+  <a href="/admin/executions"{{if eq .Navigation "executions"}} aria-current="page"{{end}}>{{icon "list"}}执行记录</a>
 </div>
-<div class="nav-group"><div class="nav-label">Workspace</div>
-  <a href="/admin/keys"{{if eq .Navigation "keys"}} aria-current="page"{{end}}>{{icon "key"}}API keys</a>
-  <a href="/admin/schedule"{{if eq .Navigation "schedule"}} aria-current="page"{{end}}>{{icon "calendar"}}Schedule builder</a>
+<div class="nav-group"><div class="nav-label">工作空间</div>
+  <a href="/admin/keys"{{if eq .Navigation "keys"}} aria-current="page"{{end}}>{{icon "key"}}API 密钥</a>
+  <a href="/admin/schedule"{{if eq .Navigation "schedule"}} aria-current="page"{{end}}>{{icon "calendar"}}计划生成器</a>
   <a href="/admin/tailscale"{{if eq .Navigation "tailscale"}} aria-current="page"{{end}}>{{icon "network"}}Tailscale</a>
-  <a href="/admin/settings"{{if eq .Navigation "settings"}} aria-current="page"{{end}}>{{icon "sliders"}}Settings</a>
-  <a href="/admin/onboarding"{{if eq .Navigation "onboarding"}} aria-current="page"{{end}}>{{icon "flag"}}Getting started</a>
+  <a href="/admin/settings"{{if eq .Navigation "settings"}} aria-current="page"{{end}}>{{icon "sliders"}}设置</a>
+  <a href="/admin/onboarding"{{if eq .Navigation "onboarding"}} aria-current="page"{{end}}>{{icon "flag"}}快速开始</a>
 </div>
 {{end}}
 
 {{define "nav"}}
 <div class="mobile-bar">
   <a class="brand" href="/admin/jobs"><img src="/admin/assets/favicon.svg" alt="">CronLite</a>
-  <details class="menu"><summary class="btn btn-secondary btn-sm">{{icon "menu"}}Menu</summary>
-    <nav class="menu-pop nav" aria-label="Primary navigation">{{template "nav_links" .}}<hr>
-      <div class="who"><div><span>Namespace</span><strong>{{.Namespace}}</strong></div>
-        <form method="post" action="/admin/logout"><input type="hidden" name="csrf_token" value="{{.CSRFToken}}"><button class="btn btn-secondary btn-sm" type="submit">{{icon "logout"}}Log out</button></form></div>
+  <details class="menu"><summary class="btn btn-secondary btn-sm">{{icon "menu"}}菜单</summary>
+    <nav class="menu-pop nav" aria-label="主导航">{{template "nav_links" .}}<hr>
+      <div class="who"><div><span>工作空间</span><strong>{{.Namespace}}</strong></div>
+        <form method="post" action="/admin/logout"><input type="hidden" name="csrf_token" value="{{.CSRFToken}}"><button class="btn btn-secondary btn-sm" type="submit">{{icon "logout"}}退出登录</button></form></div>
     </nav>
   </details>
 </div>
 <div class="shell">
 <aside class="sidebar">
   <a class="brand" href="/admin/jobs"><img src="/admin/assets/favicon.svg" alt="">CronLite</a>
-  <nav class="nav" aria-label="Primary navigation">{{template "nav_links" .}}</nav>
+  <nav class="nav" aria-label="主导航">{{template "nav_links" .}}</nav>
   <div class="sidebar-foot">
-    <div class="who"><div><span>Namespace</span><strong class="namespace">{{.Namespace}}</strong></div>
-      <form method="post" action="/admin/logout"><input type="hidden" name="csrf_token" value="{{.CSRFToken}}"><button class="icon-btn" type="submit" title="Log out">{{icon "logout"}}<span class="sr">Log out</span></button></form></div>
-    <nav class="site-foot" aria-label="Footer navigation">
-      <a href="https://github.com/djlord-it/cronlite" target="_blank" rel="noopener noreferrer" aria-label="GitHub (opens in a new tab)">GitHub</a>
-      <a href="https://deepwiki.com/djlord-it/cronlite" target="_blank" rel="noopener noreferrer" aria-label="FAQ on DeepWiki (opens in a new tab)">FAQ (DeepWiki)</a>
+    <div class="who"><div><span>工作空间</span><strong class="namespace">{{.Namespace}}</strong></div>
+      <form method="post" action="/admin/logout"><input type="hidden" name="csrf_token" value="{{.CSRFToken}}"><button class="icon-btn" type="submit" title="退出登录">{{icon "logout"}}<span class="sr">退出登录</span></button></form></div>
+    <nav class="site-foot" aria-label="页脚导航">
+      <a href="https://github.com/djlord-it/cronlite" target="_blank" rel="noopener noreferrer" aria-label="GitHub（在新窗口中打开）">GitHub</a>
+      <a href="https://deepwiki.com/djlord-it/cronlite" target="_blank" rel="noopener noreferrer" aria-label="DeepWiki 常见问题（在新窗口中打开）">常见问题（DeepWiki）</a>
     </nav>
   </div>
 </aside>
@@ -65,8 +65,8 @@
 
 {{define "public_foot"}}
 <p class="site-foot centered">
-  <a href="https://github.com/djlord-it/cronlite" target="_blank" rel="noopener noreferrer" aria-label="GitHub (opens in a new tab)">GitHub</a>
-  <a href="https://deepwiki.com/djlord-it/cronlite" target="_blank" rel="noopener noreferrer" aria-label="FAQ on DeepWiki (opens in a new tab)">FAQ (DeepWiki)</a>
+  <a href="https://github.com/djlord-it/cronlite" target="_blank" rel="noopener noreferrer" aria-label="GitHub（在新窗口中打开）">GitHub</a>
+  <a href="https://deepwiki.com/djlord-it/cronlite" target="_blank" rel="noopener noreferrer" aria-label="DeepWiki 常见问题（在新窗口中打开）">常见问题（DeepWiki）</a>
 </p>
 </div></main>
 </body>

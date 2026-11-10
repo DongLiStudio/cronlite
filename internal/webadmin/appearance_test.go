@@ -79,10 +79,10 @@ func TestPagesRenderSavedTheme(t *testing.T) {
 	for _, tt := range []struct {
 		cookie, want, pressed string
 	}{
-		{"dark", `<html lang="en" data-theme="dark">`, `value="dark" aria-pressed="true"`},
-		{"light", `<html lang="en" data-theme="light">`, `value="light" aria-pressed="true"`},
-		{"<script>", `<html lang="en">`, `value="auto" aria-pressed="true"`},
-		{"", `<html lang="en">`, `value="auto" aria-pressed="true"`},
+		{"dark", `<html lang="zh-CN" data-theme="dark">`, `value="dark" aria-pressed="true"`},
+		{"light", `<html lang="zh-CN" data-theme="light">`, `value="light" aria-pressed="true"`},
+		{"<script>", `<html lang="zh-CN">`, `value="auto" aria-pressed="true"`},
+		{"", `<html lang="zh-CN">`, `value="auto" aria-pressed="true"`},
 	} {
 		t.Run(tt.cookie, func(t *testing.T) {
 			sessions := &fakeAdminSessionStore{}
@@ -116,7 +116,7 @@ func TestSettingsShowsAppearanceNotice(t *testing.T) {
 	handler := newTestHandler(t, nil, sessions, nil)
 	rec := httptest.NewRecorder()
 	handler.ServeHTTP(rec, authenticatedRequest(http.MethodGet, "/admin/settings?notice=appearance", nil, sessions))
-	if !strings.Contains(rec.Body.String(), "Appearance saved.") {
+	if !strings.Contains(rec.Body.String(), "界面外观已保存。") {
 		t.Fatal("settings page missing the appearance notice")
 	}
 }
@@ -132,10 +132,10 @@ func TestNextRunText(t *testing.T) {
 		text      string
 		wantExact bool
 	}{
-		{row("*/15 * * * *", true), "in 15 min", true},
-		{row("0 15 * * *", true), "in 3 h", true},
-		{row("0 9 1 1 *", true), "Jan 1 09:00 UTC", true},
-		{row("*/15 * * * *", false), "Paused", false},
+		{row("*/15 * * * *", true), "15 分钟后", true},
+		{row("0 15 * * *", true), "3 小时后", true},
+		{row("0 9 1 1 *", true), "2027-01-01 09:00 UTC", true},
+		{row("*/15 * * * *", false), "已暂停", false},
 		{row("not cron", true), "—", false},
 	}
 	for _, tt := range tests {
@@ -165,7 +165,7 @@ func TestJobsTableRowsRevealDetailsAndActions(t *testing.T) {
 		`action="/admin/jobs/` + active.Job.ID.String() + `/pause"`,
 		`action="/admin/jobs/` + paused.Job.ID.String() + `/resume"`,
 		"https://api.example.com/hook",
-		"in 5 min",
+		"5 分钟后",
 	} {
 		if !strings.Contains(body, want) {
 			t.Errorf("jobs page missing %q", want)
@@ -186,7 +186,7 @@ func TestOnboardingMarksJobStep(t *testing.T) {
 		want  string
 	}{
 		{"no jobs", 0, `href="/admin/jobs/new"`},
-		{"has jobs", 3, "This namespace has 3 jobs."},
+		{"has jobs", 3, "当前工作空间已有 3 个任务。"},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
 			sessions := &fakeAdminSessionStore{}

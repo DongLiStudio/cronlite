@@ -1,52 +1,52 @@
 {{define "onboarding"}}{{template "head" .}}{{template "nav" .}}<main id="main"><div class="page narrow">
-<div class="page-head"><div><h1>Getting started</h1><p>From a fresh install to your first delivered webhook.</p></div><a class="btn btn-secondary" href="/admin/jobs">Skip onboarding</a></div>
+<div class="page-head"><div><h1>快速开始</h1><p>从首次安装到成功送达第一个 Webhook。</p></div><a class="btn btn-secondary" href="/admin/jobs">跳过引导</a></div>
 <section class="card"><ol class="steps">
-  <li class="step done"><span class="mark">{{icon "check"}}<span class="sr">Done:</span></span><div><h3>Create an API key</h3><p>You are signed in to namespace <code>{{.Namespace}}</code>. Create a key for each integration.</p></div><a class="btn btn-secondary btn-sm" href="/admin/keys">Manage API keys</a></li>
+  <li class="step done"><span class="mark">{{icon "check"}}<span class="sr">已完成：</span></span><div><h3>创建 API 密钥</h3><p>你当前位于工作空间 <code>{{.Namespace}}</code>。建议为每项集成使用独立密钥。</p></div><a class="btn btn-secondary btn-sm" href="/admin/keys">管理 API 密钥</a></li>
   {{if .Fleet.Total}}
-  <li class="step done"><span class="mark">{{icon "check"}}<span class="sr">Done:</span></span><div><h3>Create a job</h3><p>This namespace has {{.Fleet.Total}} jobs. Set a schedule and a webhook for each.</p></div><a class="btn btn-secondary btn-sm" href="/admin/jobs">View jobs</a></li>
+  <li class="step done"><span class="mark">{{icon "check"}}<span class="sr">已完成：</span></span><div><h3>创建定时任务</h3><p>当前工作空间已有 {{.Fleet.Total}} 个任务。请为每个任务设置运行计划与 Webhook。</p></div><a class="btn btn-secondary btn-sm" href="/admin/jobs">查看定时任务</a></li>
   {{else}}
-  <li class="step current"><span class="mark">2</span><div><h3>Create a job</h3><p>Set a schedule and the webhook CronLite should call. Payloads are signed with your secret.</p></div><a class="btn btn-primary btn-sm" href="/admin/jobs/new">{{icon "plus"}}Create job</a></li>
+  <li class="step current"><span class="mark">2</span><div><h3>创建定时任务</h3><p>设置运行计划和需要调用的 Webhook。请求内容会使用密钥签名。</p></div><a class="btn btn-primary btn-sm" href="/admin/jobs/new">{{icon "plus"}}创建定时任务</a></li>
   {{end}}
-  <li class="step"><span class="mark">3</span><div><h3>Trigger it once</h3><p>Use Run now on the job to send a test delivery without waiting for the schedule.</p></div><a class="btn btn-secondary btn-sm" href="/admin/jobs">Open jobs</a></li>
-  <li class="step"><span class="mark">4</span><div><h3>Check the delivery</h3><p>Open the run to see each attempt, its HTTP status and timing, then acknowledge it.</p></div><a class="btn btn-secondary btn-sm" href="/admin/runs">Open runs</a></li>
+  <li class="step"><span class="mark">3</span><div><h3>手动触发一次</h3><p>无需等待计划时间，在任务页面点击“立即运行”即可发送测试请求。</p></div><a class="btn btn-secondary btn-sm" href="/admin/jobs">打开定时任务</a></li>
+  <li class="step"><span class="mark">4</span><div><h3>检查送达结果</h3><p>打开运行记录，查看每次尝试、HTTP 状态和处理耗时，然后确认处理。</p></div><a class="btn btn-secondary btn-sm" href="/admin/runs">打开运行记录</a></li>
 </ol></section>
-<section class="card mt"><div class="card-head"><div><h2>Plan schedules first</h2><p>Preview upcoming runs in your timezone before creating jobs.</p></div><a class="btn btn-secondary btn-sm" href="/admin/schedule">Build a schedule</a></div></section>
-<section class="card mt"><div class="card-head"><div><h2>Private services over Tailscale</h2><p>Call hosts on your tailnet and serve this admin privately. Needs a build with Tailscale support.</p></div><a class="btn btn-secondary btn-sm" href="/admin/tailscale">View Tailscale</a></div></section>
+<section class="card mt"><div class="card-head"><div><h2>先预览运行计划</h2><p>创建任务前，可按时区预览接下来五次运行时间。</p></div><a class="btn btn-secondary btn-sm" href="/admin/schedule">生成运行计划</a></div></section>
+<section class="card mt"><div class="card-head"><div><h2>通过 Tailscale 访问私有服务</h2><p>调用 Tailnet 主机，并把管理端作为私有服务提供。需要启用 Tailscale 支持后重新构建。</p></div><a class="btn btn-secondary btn-sm" href="/admin/tailscale">查看 Tailscale</a></div></section>
 </div></main>{{template "foot" .}}{{end}}
 
 {{define "settings"}}{{template "head" .}}{{template "nav" .}}<main id="main"><div class="page narrow">
-<div class="page-head"><div><h1>Settings</h1><p>Your session and appearance. Server settings are read-only here.</p></div></div>
+<div class="page-head"><div><h1>设置</h1><p>管理当前会话和界面外观；服务器配置在此仅作只读展示。</p></div></div>
 {{template "messages" .}}
 <div class="stack">
 <form class="card" method="post" action="/admin/settings/appearance"><input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
-  <div class="card-head"><div><h2>Appearance</h2><p>Remembered for this browser. Auto follows your operating system.</p></div></div>
-  <div class="card-body"><div class="choice-grid" role="group" aria-label="Theme">
-    <button class="choice" type="submit" name="theme" value="auto" aria-pressed="{{if eq .Theme ""}}true{{else}}false{{end}}"><strong>{{icon "monitor"}}Auto</strong><span>Match the operating system.</span></button>
-    <button class="choice" type="submit" name="theme" value="light" aria-pressed="{{if eq .Theme "light"}}true{{else}}false{{end}}"><strong>{{icon "sun"}}Light</strong><span>Always light.</span></button>
-    <button class="choice" type="submit" name="theme" value="dark" aria-pressed="{{if eq .Theme "dark"}}true{{else}}false{{end}}"><strong>{{icon "moon"}}Dark</strong><span>Always dark.</span></button>
+  <div class="card-head"><div><h2>界面外观</h2><p>设置会保存在当前浏览器中；自动模式跟随操作系统。</p></div></div>
+  <div class="card-body"><div class="choice-grid" role="group" aria-label="主题">
+    <button class="choice" type="submit" name="theme" value="auto" aria-pressed="{{if eq .Theme ""}}true{{else}}false{{end}}"><strong>{{icon "monitor"}}自动</strong><span>跟随操作系统设置。</span></button>
+    <button class="choice" type="submit" name="theme" value="light" aria-pressed="{{if eq .Theme "light"}}true{{else}}false{{end}}"><strong>{{icon "sun"}}浅色</strong><span>始终使用浅色主题。</span></button>
+    <button class="choice" type="submit" name="theme" value="dark" aria-pressed="{{if eq .Theme "dark"}}true{{else}}false{{end}}"><strong>{{icon "moon"}}深色</strong><span>始终使用深色主题。</span></button>
   </div></div>
 </form>
-<section class="card"><div class="card-head"><h2>Workspace access</h2><a class="small" href="/admin/keys">Manage workspace access</a></div><div class="card-body"><dl class="kv">
-  <dt>Namespace</dt><dd><code>{{.Namespace}}</code></dd><dt>Authentication</dt><dd>Namespace-scoped API keys</dd>
-  <dt>Idle session limit</dt><dd>{{.SessionTTL}}</dd><dt>Session lifetime</dt><dd>{{.SessionAbsoluteTTL}}</dd>
-  <dt>Secure cookies</dt><dd>{{if .CookieSecure}}Enabled{{else}}Disabled (local HTTP){{end}}</dd></dl></div></section>
-<section class="card"><div class="card-head"><div><h2>Tailscale</h2><p>Tailnet node, webhook delivery to tailnet hosts, and tailnet access.</p></div><a class="btn btn-secondary btn-sm" href="/admin/tailscale">View Tailscale</a></div></section>
-<section class="card"><div class="card-head"><div><h2>Server runtime</h2><p>Change these settings in the server environment, then restart.</p></div>{{icon "lock"}}</div><div class="card-body"><dl class="kv">
-  {{range .RuntimeSettings}}<dt>{{.Name}}</dt><dd class="break">{{.Value}}</dd>{{else}}<dt>Configuration</dt><dd>No additional runtime settings supplied.</dd>{{end}}</dl></div></section>
+<section class="card"><div class="card-head"><h2>工作空间访问</h2><a class="small" href="/admin/keys">管理工作空间访问</a></div><div class="card-body"><dl class="kv">
+  <dt>工作空间</dt><dd><code>{{.Namespace}}</code></dd><dt>认证方式</dt><dd>按工作空间隔离的 API 密钥</dd>
+  <dt>空闲会话时限</dt><dd>{{.SessionTTL}}</dd><dt>会话最长有效期</dt><dd>{{.SessionAbsoluteTTL}}</dd>
+  <dt>安全 Cookie</dt><dd>{{if .CookieSecure}}已启用{{else}}已禁用（本地 HTTP）{{end}}</dd></dl></div></section>
+<section class="card"><div class="card-head"><div><h2>Tailscale</h2><p>查看 Tailnet 节点、向 Tailnet 主机投递 Webhook 及 Tailnet 访问状态。</p></div><a class="btn btn-secondary btn-sm" href="/admin/tailscale">查看 Tailscale</a></div></section>
+<section class="card"><div class="card-head"><div><h2>服务器运行配置</h2><p>这些配置需在服务器环境中修改，然后重启服务。</p></div>{{icon "lock"}}</div><div class="card-body"><dl class="kv">
+  {{range .RuntimeSettings}}<dt>{{.Name}}</dt><dd class="break">{{.Value}}</dd>{{else}}<dt>配置</dt><dd>未提供额外运行配置。</dd>{{end}}</dl></div></section>
 </div>
 </div></main>{{template "foot" .}}{{end}}
 
 {{define "schedule"}}{{template "head" .}}{{template "nav" .}}<main id="main"><div class="page narrow">
-<div class="page-head"><div><h1>Schedule builder</h1><p>Describe a schedule in words or cron and preview the next five runs.</p></div></div>
+<div class="page-head"><div><h1>计划生成器</h1><p>使用自然语言或 Cron 表达式描述运行计划，并预览接下来五次运行。</p></div></div>
 {{template "messages" .}}
 <form class="card" method="post" action="/admin/schedule"><input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
   <div class="card-body form-grid">
-    <div class="field full"><label for="description">Schedule</label><input id="description" name="description" type="text" value="{{.Description}}" placeholder="every 15 minutes" maxlength="200" aria-describedby="schedule-help" required><p id="schedule-help" class="help">Try daily at 9am, every weekday at 5pm, or 0 9 * * *.</p></div>
-    <div class="field"><label for="timezone">IANA timezone</label><input id="timezone" name="timezone" type="text" value="{{.Form.Timezone}}" placeholder="America/Toronto" required></div>
+    <div class="field full"><label for="description">运行计划</label><input id="description" name="description" type="text" value="{{.Description}}" placeholder="每 15 分钟" maxlength="200" aria-describedby="schedule-help" required><p id="schedule-help" class="help">例如“每天上午 9 点”“工作日 17:00”或 <code>0 9 * * *</code>。</p></div>
+    <div class="field"><label for="timezone">IANA 时区</label><input id="timezone" name="timezone" type="text" value="{{.Form.Timezone}}" placeholder="Asia/Shanghai" required></div>
   </div>
-  <div class="form-foot"><button class="btn btn-primary" type="submit">Preview schedule</button></div>
+  <div class="form-foot"><button class="btn btn-primary" type="submit">预览运行计划</button></div>
 </form>
 {{if .Resolved.CronExpression}}<section class="card mt"><div class="card-head"><div><h2><code>{{.Resolved.CronExpression}}</code></h2><p>{{.Resolved.Description}} · {{.Resolved.Timezone}}</p></div>
-  <a class="btn btn-primary" href="/admin/jobs/new?cron_expression={{.Resolved.CronExpression}}&amp;timezone={{.Resolved.Timezone}}">Use this schedule{{icon "arrow"}}</a></div>
+  <a class="btn btn-primary" href="/admin/jobs/new?cron_expression={{.Resolved.CronExpression}}&amp;timezone={{.Resolved.Timezone}}">使用此计划{{icon "arrow"}}</a></div>
   <div class="card-body"><ol class="list">{{range .Resolved.NextRuns}}<li><span class="mono">{{formatTime .}}</span></li>{{end}}</ol></div></section>{{end}}
 </div></main>{{template "foot" .}}{{end}}

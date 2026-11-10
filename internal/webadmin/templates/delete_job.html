@@ -2,17 +2,17 @@
 {{template "head" .}}
 {{template "nav" .}}
 <main id="main"><div class="page narrow">
-  <div class="crumbs"><a href="/admin/jobs">Jobs</a><span aria-hidden="true">/</span><a href="{{jobURL .Job.ID .ReturnURL}}">{{.Job.Name}}</a><span aria-hidden="true">/</span><span>Delete</span></div>
+  <div class="crumbs"><a href="/admin/jobs">定时任务</a><span aria-hidden="true">/</span><a href="{{jobURL .Job.ID .ReturnURL}}">{{.Job.Name}}</a><span aria-hidden="true">/</span><span>删除</span></div>
   <form class="card" method="post" action="/admin/jobs/{{.Job.ID}}/delete">
     <input type="hidden" name="csrf_token" value="{{.CSRFToken}}"><input type="hidden" name="return" value="{{.ReturnURL}}">
     <div class="card-body stack">
-      <h1>Delete {{.Job.Name}}?</h1>
-      <p class="muted">This permanently removes the job, its executions and delivery attempts. This action cannot be undone. To stop it for a while, pause it instead.</p>
+      <h1>删除“{{.Job.Name}}”？</h1>
+      <p class="muted">此操作会永久删除任务、执行记录和投递尝试，且无法撤销。若只是暂时停止运行，请改为暂停。</p>
       <p><code>{{.Schedule.CronExpression}}</code> · {{.Schedule.Timezone}}</p>
     </div>
     <div class="form-foot">
-      <a class="btn btn-secondary" href="{{jobURL .Job.ID .ReturnURL}}">Cancel</a>
-      <button class="btn btn-danger solid" type="submit">{{icon "trash"}}Delete job</button>
+      <a class="btn btn-secondary" href="{{jobURL .Job.ID .ReturnURL}}">取消</a>
+      <button class="btn btn-danger solid" type="submit">{{icon "trash"}}删除任务</button>
     </div>
   </form>
 </div></main>

@@ -237,6 +237,8 @@ func NewHandler(cfg Config) (http.Handler, error) {
 			return t.UTC().Format("2006-01-02 15:04:05 UTC")
 		},
 		"tagsText":      tagsText,
+		"triggerText":   triggerText,
+		"bulkAction":    bulkActionText,
 		"jobURL":        jobURL,
 		"executionURL":  executionURL,
 		"returnQuery":   returnQuery,
@@ -350,10 +352,10 @@ func limitAdminFormBodies(next http.Handler) http.Handler {
 			if err != nil {
 				var maxBytesErr *http.MaxBytesError
 				if errors.As(err, &maxBytesErr) {
-					http.Error(w, "request body too large", http.StatusRequestEntityTooLarge)
+					http.Error(w, "提交内容过大", http.StatusRequestEntityTooLarge)
 					return
 				}
-				http.Error(w, "invalid form submission", http.StatusBadRequest)
+				http.Error(w, "表单提交无效", http.StatusBadRequest)
 				return
 			}
 			r.Body = io.NopCloser(bytes.NewReader(body))
@@ -366,7 +368,7 @@ func limitAdminFormBodies(next http.Handler) http.Handler {
 func (h *Handler) serveIcon(w http.ResponseWriter, _ *http.Request) {
 	icon, err := embeddedFiles.ReadFile("assets/favicon.svg")
 	if err != nil {
-		http.Error(w, "icon unavailable", http.StatusNotFound)
+		http.Error(w, "图标不可用", http.StatusNotFound)
 		return
 	}
 	w.Header().Set("Content-Type", "image/svg+xml")
@@ -427,7 +429,7 @@ func (h *Handler) requireMutation(w http.ResponseWriter, r *http.Request) (authS
 		return authState{}, false
 	}
 	if !validateCSRF(auth.Session.CSRFToken, r.FormValue("csrf_token")) {
-		http.Error(w, "invalid CSRF token", http.StatusForbidden)
+		http.Error(w, "CSRF 校验失败", http.StatusForbidden)
 		return authState{}, false
 	}
 	return auth, true
@@ -484,16 +486,16 @@ func (h *Handler) internalError(w http.ResponseWriter, r *http.Request, err erro
 		r.URL.Path,
 		errorClass(err),
 	)
-	h.renderStatus(w, "error", pageData{Title: "Something went wrong", Error: id}, http.StatusInternalServerError)
+	h.renderStatus(w, "error", pageData{Title: "出现错误", Error: id}, http.StatusInternalServerError)
 }
 
 func (h *Handler) handleServiceError(w http.ResponseWriter, r *http.Request, err error) {
 	if errors.Is(err, domain.ErrJobNotFound) || errors.Is(err, domain.ErrExecutionNotFound) || errors.Is(err, domain.ErrAPIKeyNotFound) {
-		h.renderStatus(w, "error", pageData{Title: "Not found", Error: "The requested item does not exist."}, http.StatusNotFound)
+		h.renderStatus(w, "error", pageData{Title: "未找到", Error: "请求的内容不存在。"}, http.StatusNotFound)
 		return
 	}
 	if isUserError(err) {
-		h.renderStatus(w, "error", pageData{Title: "Action unavailable", Error: userErrorText(err)}, http.StatusConflict)
+		h.renderStatus(w, "error", pageData{Title: "操作不可用", Error: userErrorText(err)}, http.StatusConflict)
 		return
 	}
 	h.internalError(w, r, err)
@@ -543,13 +545,13 @@ func tagsText(tags []domain.Tag) string {
 
 func noticeText(code string) string {
 	return map[string]string{
-		"created":    "Job created.",
-		"updated":    "Job updated.",
-		"deleted":    "Job deleted.",
-		"paused":     "Job paused.",
-		"resumed":    "Job resumed.",
-		"triggered":  "Execution queued.",
-		"appearance": "Appearance saved.",
+		"created":    "任务已创建。",
+		"updated":    "任务已更新。",
+		"deleted":    "任务已删除。",
+		"paused":     "任务已暂停。",
+		"resumed":    "任务已恢复。",
+		"triggered":  "执行已排队。",
+		"appearance": "界面外观已保存。",
 	}[code]
 }
 
@@ -587,16 +589,38 @@ func errorClass(err error) string {
 func userErrorText(err error) string {
 	switch {
 	case errors.Is(err, domain.ErrInvalidCronExpression):
-		return "The cron expression is invalid."
+		return "Cron 表达式无效。"
 	case errors.Is(err, domain.ErrInvalidTimezone):
-		return "The timezone is invalid."
+		return "时区无效。"
 	case errors.Is(err, domain.ErrInvalidWebhookURL):
-		return "The webhook URL is invalid."
+		return "Webhook 地址无效。"
 	case errors.Is(err, domain.ErrWebhookHostNotAllowed):
-		return "This namespace may not call that tailnet host. Ask an operator to add it to WEBHOOK_TAILNET_HOSTS."
+		return "当前工作空间不能调用该 Tailnet 主机。请联系管理员将其加入 WEBHOOK_TAILNET_HOSTS。"
 	case errors.Is(err, domain.ErrJobDisabled):
-		return "Resume this job before triggering it."
+		return "请先恢复任务，再手动触发。"
 	default:
-		return "The action could not be completed."
+		return "无法完成该操作。"
+	}
+}
+
+func triggerText(value domain.TriggerType) string {
+	switch value {
+	case domain.TriggerTypeScheduled:
+		return "定时触发"
+	case domain.TriggerTypeManual:
+		return "手动触发"
+	default:
+		return string(value)
+	}
+}
+
+func bulkActionText(value string) string {
+	switch value {
+	case "pause":
+		return "批量暂停"
+	case "resume":
+		return "批量恢复"
+	default:
+		return value
 	}
 }

@@ -264,12 +264,12 @@ func TestLoginAndSetupExplainExpectedCredentials(t *testing.T) {
 
 		body := rec.Body.String()
 		for _, want := range []string{
-			"Sign in with your existing API key.",
-			"<h1>Sign in</h1>",
+			"使用现有 API 密钥登录。",
+			"<h1>登录</h1>",
 			`aria-describedby="api_key_help"`,
 			`id="api_key_help"`,
-			"Use any enabled key in your workspace.",
-			"It starts with",
+			"可使用当前工作空间内任一已启用的密钥",
+			"格式以",
 			"<code>ec_</code>",
 		} {
 			if !strings.Contains(body, want) {
@@ -290,8 +290,8 @@ func TestLoginAndSetupExplainExpectedCredentials(t *testing.T) {
 
 		body := rec.Body.String()
 		for _, want := range []string{
-			"<h1>Set up CronLite</h1>",
-			"Create a workspace and its first API key.",
+			"<h1>初始化 CronLite</h1>",
+			"创建工作空间并生成第一个 API 密钥。",
 			`aria-describedby="bootstrap_token_help"`,
 			`id="bootstrap_token_help"`,
 			"<code>ADMIN_BOOTSTRAP_TOKEN</code>",
@@ -446,7 +446,7 @@ func TestCreateAndDetailPagesRender(t *testing.T) {
 	if createRec.Code != http.StatusOK {
 		t.Fatalf("create page status = %d, want 200: %s", createRec.Code, createRec.Body.String())
 	}
-	for _, want := range []string{"Create job", `value="UTC"`, `value="30"`} {
+	for _, want := range []string{"创建任务", `value="UTC"`, `value="30"`} {
 		if !strings.Contains(createRec.Body.String(), want) {
 			t.Fatalf("create page missing %q: %s", want, createRec.Body.String())
 		}
@@ -462,7 +462,7 @@ func TestCreateAndDetailPagesRender(t *testing.T) {
 	}
 	for _, want := range []string{
 		"nightly-report", "0 9 * * *", "America/Toronto", "env", "prod",
-		"delivered", "scheduled", "Job created.", "2026-07-25 09:00:00 UTC",
+		"已送达", "定时触发", "任务已创建。", "2026-07-25 09:00:00 UTC",
 	} {
 		if !strings.Contains(detailRec.Body.String(), want) {
 			t.Fatalf("detail page missing %q: %s", want, detailRec.Body.String())
@@ -493,7 +493,7 @@ func TestPausedJobDetailRendersWithoutUpcomingRuns(t *testing.T) {
 	if rec.Code != http.StatusOK {
 		t.Fatalf("status = %d, want 200: %s", rec.Code, rec.Body.String())
 	}
-	if !strings.Contains(rec.Body.String(), "No upcoming runs while paused.") {
+	if !strings.Contains(rec.Body.String(), "任务已暂停，没有待运行计划。") {
 		t.Fatalf("paused state missing: %s", rec.Body.String())
 	}
 	if strings.Contains(rec.Body.String(), "2026-07-27 09:00:00 UTC") {
@@ -517,7 +517,7 @@ func TestServiceErrorsMapToSafeStatuses(t *testing.T) {
 				return authenticatedRequest(http.MethodGet, "/admin/jobs/"+id.String(), nil, sessions)
 			},
 			wantStatus: http.StatusNotFound,
-			wantText:   "does not exist",
+			wantText:   "请求的内容不存在。",
 		},
 		{
 			name: "disabled job action is a conflict",
@@ -531,7 +531,7 @@ func TestServiceErrorsMapToSafeStatuses(t *testing.T) {
 				)
 			},
 			wantStatus: http.StatusConflict,
-			wantText:   "Resume this job",
+			wantText:   "请先恢复任务",
 		},
 		{
 			name: "repository failure is internal",
@@ -540,7 +540,7 @@ func TestServiceErrorsMapToSafeStatuses(t *testing.T) {
 				return authenticatedRequest(http.MethodGet, "/admin/executions/"+id.String(), nil, sessions)
 			},
 			wantStatus: http.StatusInternalServerError,
-			wantText:   "Something went wrong",
+			wantText:   "出现错误",
 		},
 	}
 
@@ -625,8 +625,8 @@ func TestPaginationPreservesFilters(t *testing.T) {
 	for _, want := range []string{
 		"/admin/jobs/" + jobID.String() + "?page=1&status=failed&trigger_type=manual",
 		"/admin/jobs/" + jobID.String() + "?page=3&status=failed&trigger_type=manual",
-		`<option value="failed" selected>Failed</option>`,
-		`<option value="manual" selected>Manual</option>`,
+		`<option value="failed" selected>失败</option>`,
+		`<option value="manual" selected>手动触发</option>`,
 	} {
 		if !strings.Contains(detailBody, want) {
 			t.Fatalf("detail pagination missing %q: %s", want, detailBody)
@@ -636,6 +636,22 @@ func TestPaginationPreservesFilters(t *testing.T) {
 		svc.executionFilter.Status == nil || *svc.executionFilter.Status != domain.ExecutionStatusFailed ||
 		svc.executionFilter.TriggerType == nil || *svc.executionFilter.TriggerType != "manual" {
 		t.Fatalf("execution filter/pagination not forwarded: %#v", svc.executionFilter)
+	}
+}
+
+func TestTriggerText(t *testing.T) {
+	tests := []struct {
+		value domain.TriggerType
+		want  string
+	}{
+		{domain.TriggerTypeScheduled, "定时触发"},
+		{domain.TriggerTypeManual, "手动触发"},
+		{domain.TriggerType("unexpected"), "unexpected"},
+	}
+	for _, tt := range tests {
+		if got := triggerText(tt.value); got != tt.want {
+			t.Errorf("triggerText(%q) = %q, want %q", tt.value, got, tt.want)
+		}
 	}
 }
 
@@ -664,7 +680,7 @@ func TestLoginStoreFailureReturnsSafe500(t *testing.T) {
 	if strings.Contains(rec.Body.String(), sentinel) {
 		t.Fatalf("session store failure leaked: %s", rec.Body.String())
 	}
-	if !strings.Contains(rec.Body.String(), "Something went wrong") {
+	if !strings.Contains(rec.Body.String(), "出现错误") {
 		t.Fatalf("safe error page missing: %s", rec.Body.String())
 	}
 }
@@ -715,7 +731,7 @@ func TestBootstrapStillDisplaysOneTimeKeyWhenAutomaticLoginFails(t *testing.T) {
 	if !strings.Contains(rec.Body.String(), generated) {
 		t.Fatalf("one-time API key was lost: %s", rec.Body.String())
 	}
-	if !strings.Contains(rec.Body.String(), "Sign in") {
+	if !strings.Contains(rec.Body.String(), "登录") {
 		t.Fatalf("recoverable sign-in guidance missing: %s", rec.Body.String())
 	}
 	if strings.Contains(rec.Body.String(), sentinel) {
@@ -767,7 +783,7 @@ func TestAdminRejectsOversizedFormBodies(t *testing.T) {
 			if rec.Code != http.StatusRequestEntityTooLarge {
 				t.Fatalf("status = %d, want 413: %s", rec.Code, rec.Body.String())
 			}
-			if !strings.Contains(strings.ToLower(rec.Body.String()), "request body too large") {
+			if !strings.Contains(rec.Body.String(), "提交内容过大") {
 				t.Fatalf("controlled 413 message missing: %s", rec.Body.String())
 			}
 			assertRequiredSecurityHeaders(t, rec.Header(), false)

@@ -66,6 +66,8 @@ func TestTemplatesContainNoExecutableOrExternalAssets(t *testing.T) {
 		"scheduleText":  cron.Describe,
 		"formatTime":    func(time.Time) string { return "" },
 		"tagsText":      tagsText,
+		"triggerText":   triggerText,
+		"bulkAction":    bulkActionText,
 		"bulkResult":    bulkResultText,
 		"jobURL":        jobURL,
 		"executionURL":  executionURL,
@@ -493,7 +495,7 @@ func TestHandlerCrossOriginProtection(t *testing.T) {
 			path:       func(id uuid.UUID) string { return "/admin/jobs/" + id.String() + "/pause" },
 			csrfToken:  "wrong-token",
 			wantStatus: http.StatusForbidden,
-			wantBody:   "invalid CSRF token",
+			wantBody:   "CSRF 校验失败",
 		},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
@@ -601,7 +603,7 @@ func TestTailnetHostNotAllowedIsUserError(t *testing.T) {
 	if !isUserError(err) {
 		t.Fatal("ErrWebhookHostNotAllowed must be a user error")
 	}
-	want := "This namespace may not call that tailnet host. Ask an operator to add it to WEBHOOK_TAILNET_HOSTS."
+	want := "当前工作空间不能调用该 Tailnet 主机。请联系管理员将其加入 WEBHOOK_TAILNET_HOSTS。"
 	if got := userErrorText(err); got != want {
 		t.Fatalf("userErrorText() = %q, want %q", got, want)
 	}

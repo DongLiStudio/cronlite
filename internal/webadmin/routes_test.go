@@ -233,7 +233,7 @@ func TestDeleteUsesConfirmationThenPost(t *testing.T) {
 	getReq := authenticatedRequest(http.MethodGet, "/admin/jobs/"+jobID.String()+"/delete", nil, sessions)
 	getRec := httptest.NewRecorder()
 	handler.ServeHTTP(getRec, getReq)
-	if getRec.Code != http.StatusOK || !strings.Contains(getRec.Body.String(), "Delete delete-me?") {
+	if getRec.Code != http.StatusOK || !strings.Contains(getRec.Body.String(), "删除“delete-me”？") {
 		t.Fatalf("confirmation missing: status=%d body=%s", getRec.Code, getRec.Body.String())
 	}
 
@@ -272,9 +272,9 @@ func TestExecutionPageRendersDeliveryAttempts(t *testing.T) {
 	if rec.Code != http.StatusOK {
 		t.Fatalf("expected 200, got %d: %s", rec.Code, rec.Body.String())
 	}
-	for _, want := range []string{"failed", "manual", "503", "upstream unavailable"} {
+	for _, want := range []string{"失败", "手动触发", "503", "upstream unavailable"} {
 		if !strings.Contains(rec.Body.String(), want) {
-			t.Fatalf("expected execution page to contain %q", want)
+			t.Fatalf("expected execution page to contain %q: %s", want, rec.Body.String())
 		}
 	}
 }

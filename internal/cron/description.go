@@ -15,23 +15,23 @@ import (
 func Describe(expression string) string {
 	parsed, err := NewParser().parseSpec(expression)
 	if err != nil {
-		return "Invalid schedule"
+		return "无效计划"
 	}
 	s, ok := parsed.(*robcron.SpecSchedule)
 	if !ok {
-		return "Custom schedule"
+		return "自定义计划"
 	}
 	minute, hour := fieldValues(s.Minute, 0, 59), fieldValues(s.Hour, 0, 23)
 	dom, dow, month := fieldValues(s.Dom, 1, 31), fieldValues(s.Dow, 0, 6), fieldValues(s.Month, 1, 12)
 	day := describeDays(s.Dom, s.Dow, dom, dow)
 	text := describeClock(minute, hour)
 	if day == "" && len(minute) == 1 && len(hour) == 1 {
-		text = "Daily at " + fmt.Sprintf("%02d:%02d", hour[0], minute[0])
+		text = "每天 " + fmt.Sprintf("%02d:%02d", hour[0], minute[0])
 	} else if day != "" {
 		text += " " + day
 	}
 	if len(month) != 12 {
-		text += " in " + describeValues(month, func(n int) string { return time.Month(n).String() })
+		text += "，月份：" + describeValues(month, func(n int) string { return fmt.Sprintf("%d月", n) })
 	}
 	// CRON_TZ/TZ prefixes override the job timezone in robfig's parser.
 	if s.Location != time.Local {
@@ -71,36 +71,36 @@ func regularStep(values []int, size int) int {
 func describeClock(minute, hour []int) string {
 	if len(hour) == 24 {
 		if len(minute) == 60 {
-			return "Every minute"
+			return "每分钟"
 		}
 		if step := regularStep(minute, 60); step > 0 {
-			return fmt.Sprintf("Every %d minutes", step)
+			return fmt.Sprintf("每 %d 分钟", step)
 		}
 		if len(minute) == 1 {
 			if minute[0] == 0 {
-				return "Every hour"
+				return "每小时"
 			}
-			return fmt.Sprintf("Every hour at minute %d", minute[0])
+			return fmt.Sprintf("每小时第 %d 分钟", minute[0])
 		}
-		return "At minutes " + describeValues(minute, strconv.Itoa) + " of every hour"
+		return "每小时的第 " + describeValues(minute, strconv.Itoa) + " 分钟"
 	}
 	if len(minute) == 1 {
 		if minute[0] == 0 {
 			if step := regularStep(hour, 24); step > 0 {
-				return fmt.Sprintf("Every %d hours", step)
+				return fmt.Sprintf("每 %d 小时", step)
 			}
 		}
 		var times []string
 		for _, h := range hour {
 			times = append(times, fmt.Sprintf("%02d:%02d", h, minute[0]))
 		}
-		return "At " + strings.Join(times, ", ")
+		return "每天 " + strings.Join(times, "、")
 	}
 	hours := describeValues(hour, func(n int) string { return fmt.Sprintf("%02d", n) })
 	if len(minute) == 60 {
-		return "Every minute during hours " + hours
+		return "在 " + hours + " 时的每分钟"
 	}
-	return "At minutes " + describeValues(minute, strconv.Itoa) + " past hours " + hours
+	return "在 " + hours + " 时的第 " + describeValues(minute, strconv.Itoa) + " 分钟"
 }
 
 func describeDays(domMask, dowMask uint64, dom, dow []int) string {
@@ -111,20 +111,24 @@ func describeDays(domMask, dowMask uint64, dom, dow []int) string {
 	}
 	var parts []string
 	if len(dom) != 31 {
-		label := "days "
+		label := "每月第 "
 		if len(dom) == 1 {
-			label = "day "
+			label = "每月第 "
 		}
-		parts = append(parts, label+describeValues(dom, strconv.Itoa)+" of the month")
+		parts = append(parts, label+describeValues(dom, strconv.Itoa)+" 天")
 	}
 	if len(dow) != 7 {
-		parts = append(parts, describeValues(dow, func(n int) string { return time.Weekday(n).String() }))
+		parts = append(parts, "每周"+describeValues(dow, weekdayName))
 	}
-	join := " or "
+	join := "或"
 	if and {
-		join = " and "
+		join = "且"
 	}
-	return "on " + strings.Join(parts, join)
+	return strings.Join(parts, join)
+}
+
+func weekdayName(n int) string {
+	return [...]string{"日", "一", "二", "三", "四", "五", "六"}[n]
 }
 
 func describeValues(values []int, label func(int) string) string {

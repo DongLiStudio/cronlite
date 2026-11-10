@@ -2,28 +2,28 @@
 {{template "head" .}}
 {{template "nav" .}}
 <main id="main"><div class="page">
-  <div class="crumbs"><a href="{{.ReturnURL}}">Return to view</a><span aria-hidden="true">/</span><span>Execution</span></div>
+  <div class="crumbs"><a href="{{.ReturnURL}}">返回列表</a><span aria-hidden="true">/</span><span>执行记录</span></div>
   <div class="page-head">
-    <div><h1>Execution</h1><p>{{template "exec_status" .Execution.Status}} {{.Execution.TriggerType}} run</p></div>
+    <div><h1>执行记录</h1><p>{{template "exec_status" .Execution.Status}} · {{triggerText .Execution.TriggerType}}</p></div>
     <div class="actions">
-      {{if and (not .Execution.AcknowledgedAt) (or (eq .Execution.Status "delivered") (eq .Execution.Status "failed"))}}<form method="post" action="/admin/executions/{{.Execution.ID}}/ack"><input type="hidden" name="csrf_token" value="{{.CSRFToken}}"><button class="btn btn-primary" type="submit">{{icon "check"}}Acknowledge execution</button></form>{{end}}
-      <a class="btn btn-secondary" href="{{jobURL .Execution.JobID .ReturnURL}}">Job configuration</a>
+      {{if and (not .Execution.AcknowledgedAt) (or (eq .Execution.Status "delivered") (eq .Execution.Status "failed"))}}<form method="post" action="/admin/executions/{{.Execution.ID}}/ack"><input type="hidden" name="csrf_token" value="{{.CSRFToken}}"><button class="btn btn-primary" type="submit">{{icon "check"}}确认执行</button></form>{{end}}
+      <a class="btn btn-secondary" href="{{jobURL .Execution.JobID .ReturnURL}}">任务配置</a>
     </div>
   </div>
   <div class="split">
-    <section class="card"><div class="card-head"><div><h2>Delivery attempts</h2><p>Each attempt with its HTTP status and timing.</p></div></div>
+    <section class="card"><div class="card-head"><div><h2>投递尝试</h2><p>每次尝试的 HTTP 状态和时间信息。</p></div></div>
       <div class="table-wrap"><table>
-        <thead><tr><th class="num">Attempt</th><th>HTTP status</th><th>Error</th><th>Started</th><th>Finished</th></tr></thead>
-        <tbody>{{range .Attempts}}<tr><td class="num">{{.Attempt}}</td><td>{{if .StatusCode}}{{if lt .StatusCode 300}}<span class="badge ok">{{.StatusCode}}</span>{{else}}<span class="badge bad">{{.StatusCode}}</span>{{end}}{{else}}<span class="badge bad">No response</span>{{end}}</td><td class="break">{{if .Error}}{{.Error}}{{else}}—{{end}}</td><td class="mono small">{{formatTime .StartedAt}}</td><td class="mono small">{{formatTime .FinishedAt}}</td></tr>
-        {{else}}<tr><td colspan="5" class="empty">No delivery attempts recorded.</td></tr>{{end}}</tbody>
+        <thead><tr><th class="num">尝试</th><th>HTTP 状态</th><th>错误</th><th>开始时间</th><th>结束时间</th></tr></thead>
+        <tbody>{{range .Attempts}}<tr><td class="num">{{.Attempt}}</td><td>{{if .StatusCode}}{{if lt .StatusCode 300}}<span class="badge ok">{{.StatusCode}}</span>{{else}}<span class="badge bad">{{.StatusCode}}</span>{{end}}{{else}}<span class="badge bad">无响应</span>{{end}}</td><td class="break">{{if .Error}}{{.Error}}{{else}}—{{end}}</td><td class="mono small">{{formatTime .StartedAt}}</td><td class="mono small">{{formatTime .FinishedAt}}</td></tr>
+        {{else}}<tr><td colspan="5" class="empty">没有投递记录。</td></tr>{{end}}</tbody>
       </table></div></section>
-    <section class="card"><div class="card-head"><h2>Details</h2></div><div class="card-body"><dl class="kv stacked">
+    <section class="card"><div class="card-head"><h2>详情</h2></div><div class="card-body"><dl class="kv stacked">
       <dt>ID</dt><dd><code>{{.Execution.ID}}</code></dd>
-      <dt>Scheduled</dt><dd>{{formatTime .Execution.ScheduledAt}}</dd>
-      <dt>Fired</dt><dd>{{formatTime .Execution.FiredAt}}</dd>
-      <dt>Acknowledged</dt><dd>{{if .Execution.AcknowledgedAt}}{{formatTime .Execution.AcknowledgedAt}}{{else}}Not yet acknowledged{{end}}</dd>
-      <dt>Created</dt><dd>{{formatTime .Execution.CreatedAt}}</dd>
-    </dl><p class="small"><a href="/admin/executions">All executions</a></p></div></section>
+      <dt>计划时间</dt><dd>{{formatTime .Execution.ScheduledAt}}</dd>
+      <dt>触发时间</dt><dd>{{formatTime .Execution.FiredAt}}</dd>
+      <dt>确认时间</dt><dd>{{if .Execution.AcknowledgedAt}}{{formatTime .Execution.AcknowledgedAt}}{{else}}尚未确认{{end}}</dd>
+      <dt>创建时间</dt><dd>{{formatTime .Execution.CreatedAt}}</dd>
+    </dl><p class="small"><a href="/admin/executions">全部执行记录</a></p></div></section>
   </div>
 </div></main>
 {{template "foot" .}}

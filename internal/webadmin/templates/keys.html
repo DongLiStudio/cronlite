@@ -1,29 +1,29 @@
 {{define "keys"}}
 {{template "head" .}}{{template "nav" .}}
 <main id="main"><div class="page">
- <div class="page-head"><div><h1>API keys</h1><p>Keys are scoped to namespace <code>{{.Namespace}}</code>. Use one per integration; secrets are shown once and never listed.</p></div></div>
+ <div class="page-head"><div><h1>API 密钥</h1><p>密钥仅限工作空间 <code>{{.Namespace}}</code>。建议每项集成使用独立密钥；密钥明文只显示一次，之后不会再次列出。</p></div></div>
  {{template "messages" .}}
- <section class="card"><div class="card-head"><div><h2>Create an API key</h2><p>The secret is shown once.</p></div></div>{{template "key_form" .}}</section>
- <section class="card mt"><div class="card-head"><h2>Workspace keys</h2><span class="muted small">Secrets are never listed</span></div>
- <div class="table-wrap"><table><thead><tr><th>Label / ID</th><th>Status</th><th>Created</th><th>Last used</th><th>Access</th></tr></thead><tbody>
- {{range .APIKeys}}<tr><td><strong>{{.Label}}</strong>{{if .TailnetLogin}} <span class="badge info plain">Tailscale</span>{{end}}<span class="sub mono">{{.ID}}</span></td><td>{{if .Enabled}}<span class="badge ok">Enabled</span>{{else}}<span class="badge">Disabled</span>{{end}}</td><td class="small">{{formatTime .CreatedAt}}</td><td class="small">{{if .LastUsedAt}}{{formatTime .LastUsedAt}}{{else}}Never{{end}}</td><td>{{if eq .ID $.CurrentKeyID}}<span class="badge info plain">Current session</span>{{else}}<a class="btn btn-danger btn-sm" href="/admin/keys/{{.ID}}/delete">Revoke key</a>{{end}}</td></tr>
- {{else}}<tr><td colspan="5" class="empty">No keys on this page.</td></tr>{{end}}
+ <section class="card"><div class="card-head"><div><h2>创建 API 密钥</h2><p>密钥明文只显示一次。</p></div></div>{{template "key_form" .}}</section>
+ <section class="card mt"><div class="card-head"><h2>工作空间密钥</h2><span class="muted small">不会列出密钥明文</span></div>
+ <div class="table-wrap"><table><thead><tr><th>名称 / ID</th><th>状态</th><th>创建时间</th><th>最近使用</th><th>访问</th></tr></thead><tbody>
+ {{range .APIKeys}}<tr><td><strong>{{.Label}}</strong>{{if .TailnetLogin}} <span class="badge info plain">Tailscale</span>{{end}}<span class="sub mono">{{.ID}}</span></td><td>{{if .Enabled}}<span class="badge ok">已启用</span>{{else}}<span class="badge">已禁用</span>{{end}}</td><td class="small">{{formatTime .CreatedAt}}</td><td class="small">{{if .LastUsedAt}}{{formatTime .LastUsedAt}}{{else}}从未使用{{end}}</td><td>{{if eq .ID $.CurrentKeyID}}<span class="badge info plain">当前会话</span>{{else}}<a class="btn btn-danger btn-sm" href="/admin/keys/{{.ID}}/delete">撤销密钥</a>{{end}}</td></tr>
+ {{else}}<tr><td colspan="5" class="empty">当前页没有密钥。</td></tr>{{end}}
  </tbody></table></div>
- <nav class="pagination" aria-label="API key pages"><span>Page {{.Page}}</span><span class="pages">{{if .PreviousURL}}<a class="btn btn-secondary btn-sm" href="{{.PreviousURL}}">Previous</a>{{end}}{{if .NextURL}}<a class="btn btn-secondary btn-sm" href="{{.NextURL}}">Next</a>{{end}}</span></nav></section>
- <div class="callout info mt">{{icon "info"}}<div><strong>Rotating a key</strong><p>To rotate a key: create a replacement, update your integration, then revoke the old key. To rotate your sign-in key, sign in with the replacement first.</p></div></div>
+ <nav class="pagination" aria-label="API 密钥分页"><span>第 {{.Page}} 页</span><span class="pages">{{if .PreviousURL}}<a class="btn btn-secondary btn-sm" href="{{.PreviousURL}}">上一页</a>{{end}}{{if .NextURL}}<a class="btn btn-secondary btn-sm" href="{{.NextURL}}">下一页</a>{{end}}</span></nav></section>
+ <div class="callout info mt">{{icon "info"}}<div><strong>轮换密钥</strong><p>先创建替代密钥并更新集成，再撤销旧密钥。若要轮换当前登录密钥，请先用替代密钥登录。</p></div></div>
 </div></main>{{template "foot" .}}{{end}}
 
-{{define "key_form"}}<form class="toolbar no-rule" method="post" action="/admin/keys"><input type="hidden" name="csrf_token" value="{{.CSRFToken}}"><div class="grow"><label for="label">Key label</label><input id="label" name="label" type="text" value="{{.KeyLabel}}" maxlength="128" placeholder="e.g. production-worker" required></div><button class="btn btn-primary" type="submit">{{icon "plus"}}Create key</button></form>{{end}}
+{{define "key_form"}}<form class="toolbar no-rule" method="post" action="/admin/keys"><input type="hidden" name="csrf_token" value="{{.CSRFToken}}"><div class="grow"><label for="label">密钥名称</label><input id="label" name="label" type="text" value="{{.KeyLabel}}" maxlength="128" placeholder="例如 production-worker" required></div><button class="btn btn-primary" type="submit">{{icon "plus"}}创建密钥</button></form>{{end}}
 
-{{define "key_new"}}{{template "head" .}}{{template "nav" .}}<main id="main"><div class="page narrow"><div class="crumbs"><a href="/admin/keys">API keys</a><span aria-hidden="true">/</span><span>Create</span></div><div class="page-head"><div><h1>Create API key</h1></div></div>{{template "messages" .}}<section class="card">{{template "key_form" .}}</section></div></main>{{template "foot" .}}{{end}}
+{{define "key_new"}}{{template "head" .}}{{template "nav" .}}<main id="main"><div class="page narrow"><div class="crumbs"><a href="/admin/keys">API 密钥</a><span aria-hidden="true">/</span><span>创建</span></div><div class="page-head"><div><h1>创建 API 密钥</h1></div></div>{{template "messages" .}}<section class="card">{{template "key_form" .}}</section></div></main>{{template "foot" .}}{{end}}
 
-{{define "key_created"}}{{template "head" .}}{{template "nav" .}}<main id="main"><div class="page narrow"><div class="crumbs"><a href="/admin/keys">API keys</a><span aria-hidden="true">/</span><span>{{.KeyLabel}}</span></div>
-<section class="card"><div class="card-body stack"><div><h1>Save API key</h1><p class="muted">Save this API key in your password manager now. It cannot be retrieved later.</p></div>
-<div class="field"><span class="label">{{.KeyLabel}}</span><pre class="secret" tabindex="0" aria-label="New API key">{{.APIKey}}</pre><p class="help">Select the key to copy it. This key has access to namespace <strong>{{.Namespace}}</strong>.</p></div></div>
-<div class="form-foot"><a class="btn btn-primary" href="/admin/keys">I’ve saved my key</a></div></section></div></main>{{template "foot" .}}{{end}}
+{{define "key_created"}}{{template "head" .}}{{template "nav" .}}<main id="main"><div class="page narrow"><div class="crumbs"><a href="/admin/keys">API 密钥</a><span aria-hidden="true">/</span><span>{{.KeyLabel}}</span></div>
+<section class="card"><div class="card-body stack"><div><h1>保存 API 密钥</h1><p class="muted">请立即将密钥保存到密码管理器，之后无法再次查看。</p></div>
+<div class="field"><span class="label">{{.KeyLabel}}</span><pre class="secret" tabindex="0" aria-label="新的 API 密钥">{{.APIKey}}</pre><p class="help">选中密钥即可复制。此密钥可访问工作空间 <strong>{{.Namespace}}</strong>。</p></div></div>
+<div class="form-foot"><a class="btn btn-primary" href="/admin/keys">我已保存</a></div></section></div></main>{{template "foot" .}}{{end}}
 
-{{define "key_delete"}}{{template "head" .}}{{template "nav" .}}<main id="main"><div class="page narrow"><div class="crumbs"><a href="/admin/keys">API keys</a><span aria-hidden="true">/</span><span>Revoke</span></div>
-{{if eq .SelectedKey.ID .CurrentKeyID}}<section class="card"><div class="card-body stack"><h1>Revoke {{.SelectedKey.Label}}?</h1><p>Sign in with a replacement key before revoking the key used by this session.</p></div><div class="form-foot"><a class="btn btn-secondary" href="/admin/keys">Back to API keys</a></div></section>
-{{else}}<form class="card" method="post" action="/admin/keys/{{.SelectedKey.ID}}/delete"><input type="hidden" name="csrf_token" value="{{.CSRFToken}}"><div class="card-body stack"><h1>Revoke {{.SelectedKey.Label}}?</h1><p class="muted">Integrations and admin sessions using this key will lose access. Jobs and execution history will be preserved.</p>{{if .SelectedKey.TailnetLogin}}<p class="muted">This key backs Tailscale sign-in for <code>{{.SelectedKey.TailnetLogin}}</code>. They can sign in again while the tailnet policy grants them this namespace; remove the grant to keep them out.</p>{{end}}<dl class="kv"><dt>Key ID</dt><dd><code>{{.SelectedKey.ID}}</code></dd></dl></div>
-<div class="form-foot"><a class="btn btn-secondary" href="/admin/keys">Cancel</a><button class="btn btn-danger solid" type="submit">Revoke key</button></div></form>{{end}}
+{{define "key_delete"}}{{template "head" .}}{{template "nav" .}}<main id="main"><div class="page narrow"><div class="crumbs"><a href="/admin/keys">API 密钥</a><span aria-hidden="true">/</span><span>撤销</span></div>
+{{if eq .SelectedKey.ID .CurrentKeyID}}<section class="card"><div class="card-body stack"><h1>撤销 {{.SelectedKey.Label}}？</h1><p>请先使用替代密钥登录，再撤销当前会话正在使用的密钥。</p></div><div class="form-foot"><a class="btn btn-secondary" href="/admin/keys">返回 API 密钥</a></div></section>
+{{else}}<form class="card" method="post" action="/admin/keys/{{.SelectedKey.ID}}/delete"><input type="hidden" name="csrf_token" value="{{.CSRFToken}}"><div class="card-body stack"><h1>撤销 {{.SelectedKey.Label}}？</h1><p class="muted">使用此密钥的集成和管理会话将失去访问权限；定时任务和执行历史会保留。</p>{{if .SelectedKey.TailnetLogin}}<p class="muted">此密钥用于 <code>{{.SelectedKey.TailnetLogin}}</code> 的 Tailscale 登录。只要 Tailnet 策略仍授予该工作空间，对方仍可重新登录；如需彻底阻止，请移除对应授权。</p>{{end}}<dl class="kv"><dt>密钥 ID</dt><dd><code>{{.SelectedKey.ID}}</code></dd></dl></div>
+<div class="form-foot"><a class="btn btn-secondary" href="/admin/keys">取消</a><button class="btn btn-danger solid" type="submit">撤销密钥</button></div></form>{{end}}
 </div></main>{{template "foot" .}}{{end}}

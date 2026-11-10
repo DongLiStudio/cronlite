@@ -131,7 +131,7 @@ func TestJobFormValidationPreservesSubmittedValues(t *testing.T) {
 				"webhook_url":     {"https://example.com"},
 				"timeout_seconds": {"30"},
 			},
-			want: "required",
+			want: "不能为空",
 		},
 		{
 			name: "non numeric timeout",
@@ -142,7 +142,7 @@ func TestJobFormValidationPreservesSubmittedValues(t *testing.T) {
 				"webhook_url":     {"https://example.com"},
 				"timeout_seconds": {"soon"},
 			},
-			want: "timeout",
+			want: "超时时间",
 		},
 		{
 			name: "timeout above maximum",
@@ -153,7 +153,7 @@ func TestJobFormValidationPreservesSubmittedValues(t *testing.T) {
 				"webhook_url":     {"https://example.com"},
 				"timeout_seconds": {"61"},
 			},
-			want: "timeout",
+			want: "超时时间",
 		},
 		{
 			name: "invalid tags",

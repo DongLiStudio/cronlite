@@ -101,12 +101,12 @@ func (h *Handler) tailnetLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if !h.validPublicCSRF(r) {
-		h.renderLogin(w, r, si, "The form expired. Please try again.", http.StatusForbidden)
+		h.renderLogin(w, r, si, "表单已过期，请重试。", http.StatusForbidden)
 		return
 	}
 	ns := r.FormValue("namespace")
 	if si.Login == "" || !slices.Contains(si.Namespaces, ns) {
-		h.renderLogin(w, r, si, "Your Tailscale identity may not sign in to that namespace.", http.StatusForbidden)
+		h.renderLogin(w, r, si, "当前 Tailscale 身份无权登录该工作空间。", http.StatusForbidden)
 		return
 	}
 	key, err := h.service.TailnetKey(r.Context(), domain.Namespace(ns), si.Login)
@@ -115,7 +115,7 @@ func (h *Handler) tailnetLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if !key.Enabled {
-		h.renderLogin(w, r, si, "Your Tailscale identity may not sign in to that namespace.", http.StatusForbidden)
+		h.renderLogin(w, r, si, "当前 Tailscale 身份无权登录该工作空间。", http.StatusForbidden)
 		return
 	}
 	if err := h.sessions.startSession(r.Context(), w, r, key); err != nil {
@@ -131,6 +131,6 @@ func (h *Handler) tailnetLogin(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) renderLogin(w http.ResponseWriter, r *http.Request, si tailnetSignIn, msg string, status int) {
 	w.Header().Set("Cache-Control", "no-store")
 	h.renderStatus(w, "login", pageData{
-		Title: "Sign in", Error: msg, CSRFToken: h.issuePublicCSRF(w), TailnetSignIn: si, Theme: themeFromRequest(r),
+		Title: "登录", Error: msg, CSRFToken: h.issuePublicCSRF(w), TailnetSignIn: si, Theme: themeFromRequest(r),
 	}, status)
 }

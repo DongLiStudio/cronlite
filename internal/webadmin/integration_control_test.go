@@ -302,7 +302,7 @@ func TestIntegrationBulkOwnershipExpiryPartialFailureAndReplay(t *testing.T) {
 	loginIntegrationClient(t, client, server.URL, keyA.PlaintextToken)
 	csrf := authenticatedCSRF(t, client, server.URL)
 	response, body := integrationGet(t, client, server.URL+"/admin/bulk/"+batch.ID.String())
-	if response.StatusCode != 200 || !strings.Contains(body, "1 applied · 1 unchanged · 3 not applied") || strings.Contains(body, "injected private db error") {
+	if response.StatusCode != 200 || !strings.Contains(body, "已应用 1 个 · 无需变更 1 个 · 未应用 3 个") || strings.Contains(body, "injected private db error") {
 		t.Fatal("persisted result UI")
 	}
 	for _, form := range []url.Values{{"csrf_token": {csrf}}, {"confirm": {"yes"}}} {

@@ -14,7 +14,7 @@ func (h *Handler) keysPage(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
-	data := h.authPage(auth, "API keys")
+	data := h.authPage(auth, "API 密钥")
 	data.CurrentKeyID = auth.Key.ID
 	data.Page = positivePage(r.URL.Query().Get("page"))
 	keys, err := h.service.ListAPIKeys(r.Context(), domain.ListParams{Limit: 26, Offset: (data.Page - 1) * 25})
@@ -29,7 +29,7 @@ func (h *Handler) keysPage(w http.ResponseWriter, r *http.Request) {
 	data.APIKeys = keys
 	data.PreviousURL, data.NextURL = paginationURLs(r, data.Page, hasNext)
 	if r.URL.Query().Get("notice") == "deleted" {
-		data.Notice = "API key revoked. Sessions using it can no longer sign in."
+		data.Notice = "API 密钥已撤销，使用该密钥的会话将无法继续登录。"
 	}
 	h.render(w, "keys", data)
 }
@@ -41,8 +41,8 @@ func (h *Handler) createKey(w http.ResponseWriter, r *http.Request) {
 	}
 	label := strings.TrimSpace(r.FormValue("label"))
 	if label == "" || len([]rune(label)) > 128 {
-		data := h.authPage(auth, "Create API key")
-		data.Error = "Enter a key label of 1–128 characters."
+		data := h.authPage(auth, "创建 API 密钥")
+		data.Error = "请输入 1–128 个字符的密钥名称。"
 		data.KeyLabel = label
 		h.renderStatus(w, "key_new", data, http.StatusUnprocessableEntity)
 		return
@@ -52,7 +52,7 @@ func (h *Handler) createKey(w http.ResponseWriter, r *http.Request) {
 		h.internalError(w, r, err)
 		return
 	}
-	data := h.authPage(auth, "API key created")
+	data := h.authPage(auth, "API 密钥已创建")
 	data.APIKey = result.PlaintextToken
 	data.KeyLabel = result.Key.Label
 	h.render(w, "key_created", data)
@@ -76,7 +76,7 @@ func (h *Handler) deleteKeyPage(w http.ResponseWriter, r *http.Request) {
 		}
 		for _, key := range keys {
 			if key.ID == id {
-				data := h.authPage(auth, "Revoke API key")
+				data := h.authPage(auth, "撤销 API 密钥")
 				data.SelectedKey = key
 				data.CurrentKeyID = auth.Key.ID
 				h.render(w, "key_delete", data)
@@ -100,8 +100,8 @@ func (h *Handler) deleteKey(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if id == auth.Key.ID {
-		data := h.authPage(auth, "Key in use")
-		data.Error = "Sign in with another key before revoking your current key. Create a replacement in API keys first."
+		data := h.authPage(auth, "密钥正在使用")
+		data.Error = "撤销当前会话使用的密钥前，请先创建替代密钥并使用它登录。"
 		h.renderStatus(w, "error", data, http.StatusConflict)
 		return
 	}
@@ -117,7 +117,7 @@ func (h *Handler) onboardingPage(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
-	data := h.authPage(auth, "Welcome to your workspace")
+	data := h.authPage(auth, "欢迎使用工作空间")
 	// Only the job count is needed to mark the "create a job" step done; a
 	// failed lookup leaves the step open rather than failing the page.
 	if fleet, err := h.service.Fleet(r.Context(), domain.JobFilter{
@@ -132,7 +132,7 @@ func (h *Handler) settingsPage(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
-	data := h.authPage(auth, "Settings")
+	data := h.authPage(auth, "设置")
 	data.RuntimeSettings = h.runtimeSettings
 	data.SessionTTL = h.sessions.idleTTL
 	data.SessionAbsoluteTTL = h.sessions.absoluteTTL
@@ -145,7 +145,7 @@ func (h *Handler) schedulePage(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
-	data := h.authPage(auth, "Schedule builder")
+	data := h.authPage(auth, "计划生成器")
 	data.Form.Timezone = "UTC"
 	h.render(w, "schedule", data)
 }
@@ -154,13 +154,13 @@ func (h *Handler) resolveSchedule(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
-	data := h.authPage(auth, "Schedule builder")
+	data := h.authPage(auth, "计划生成器")
 	data.Description = strings.TrimSpace(r.FormValue("description"))
 	data.Form.Timezone = strings.TrimSpace(r.FormValue("timezone"))
 	result, err := h.service.ResolveSchedule(r.Context(), data.Description, data.Form.Timezone)
 	if err != nil {
 		if errors.Is(err, domain.ErrScheduleParseFailure) || errors.Is(err, domain.ErrInvalidTimezone) || errors.Is(err, domain.ErrInvalidCronExpression) {
-			data.Error = "Enter a valid timezone and a schedule such as every 15 minutes, daily at 9am, or 0 9 * * *."
+			data.Error = "请输入有效的时区和运行计划，例如“每 15 分钟”“每天上午 9 点”或 0 9 * * *。"
 			h.renderStatus(w, "schedule", data, http.StatusUnprocessableEntity)
 			return
 		}
@@ -176,7 +176,7 @@ func (h *Handler) executionsPage(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
-	data := h.authPage(auth, "Executions")
+	data := h.authPage(auth, "执行记录")
 	data.Page = positivePage(r.URL.Query().Get("page"))
 	data.ExecutionStatusFilter = r.URL.Query().Get("status")
 	data.TriggerTypeFilter = r.URL.Query().Get("trigger_type")
@@ -211,7 +211,7 @@ func (h *Handler) executionsPage(w http.ResponseWriter, r *http.Request) {
 	data.Executions = executions
 	data.PreviousURL, data.NextURL = paginationURLs(r, data.Page, hasNext)
 	if r.URL.Query().Get("notice") == "acknowledged" {
-		data.Notice = "Execution acknowledged."
+		data.Notice = "执行记录已确认。"
 	}
 	h.render(w, "executions", data)
 }

@@ -82,9 +82,9 @@ func (c TailnetConfig) target(namespace, rawURL string) tailnetTarget {
 	t := tailnetTarget{Tailnet: true, Host: rel}
 	switch {
 	case !c.Delivery:
-		t.Reason = "Tailnet delivery is off (WEBHOOK_ALLOW_TAILNET)."
+		t.Reason = "Tailnet 投递已关闭（WEBHOOK_ALLOW_TAILNET）。"
 	case c.Policy.Check(namespace, u.Hostname(), c.suffix()) != nil:
-		t.Reason = "This namespace may not call this host (WEBHOOK_TAILNET_HOSTS)."
+		t.Reason = "当前工作空间无权调用该主机（WEBHOOK_TAILNET_HOSTS）。"
 	default:
 		t.Allowed = true
 	}

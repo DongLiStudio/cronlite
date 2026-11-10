@@ -24,17 +24,17 @@ func (h *Handler) loginPage(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/admin/jobs", http.StatusSeeOther)
 		return
 	}
-	h.renderPublicForm(w, r, "login", pageData{Title: "Sign in", TailnetSignIn: h.tailnetSignIn(r)})
+	h.renderPublicForm(w, r, "login", pageData{Title: "登录", TailnetSignIn: h.tailnetSignIn(r)})
 }
 
 func (h *Handler) login(w http.ResponseWriter, r *http.Request) {
 	if !h.validPublicCSRF(r) {
-		h.renderLogin(w, r, h.tailnetSignIn(r), "The form expired. Please try again.", http.StatusForbidden)
+		h.renderLogin(w, r, h.tailnetSignIn(r), "表单已过期，请重试。", http.StatusForbidden)
 		return
 	}
 	if _, err := h.sessions.login(r.Context(), w, r, r.FormValue("api_key")); err != nil {
 		if errors.Is(err, errUnauthenticated) {
-			h.renderLogin(w, r, h.tailnetSignIn(r), "Invalid API key.", http.StatusUnauthorized)
+			h.renderLogin(w, r, h.tailnetSignIn(r), "API 密钥无效。", http.StatusUnauthorized)
 			return
 		}
 		h.internalError(w, r, err)
@@ -54,11 +54,11 @@ func (h *Handler) setupPage(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/admin/login", http.StatusSeeOther)
 		return
 	}
-	data := pageData{Title: "Set up CronLite", TailnetSignIn: h.tailnetSignIn(r)}
+	data := pageData{Title: "初始化 CronLite", TailnetSignIn: h.tailnetSignIn(r)}
 	// Tailscale sign-in needs no installation token, so the missing token is
 	// only worth an error when that button is not on the page.
 	if h.bootstrapToken == "" && len(data.TailnetSignIn.Namespaces) == 0 {
-		data.Error = "Set ADMIN_BOOTSTRAP_TOKEN and restart CronLite before continuing."
+		data.Error = "请先设置 ADMIN_BOOTSTRAP_TOKEN 并重启 CronLite。"
 	}
 	h.renderPublicForm(w, r, "setup", data)
 }
@@ -74,17 +74,17 @@ func (h *Handler) setup(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if !h.validPublicCSRF(r) {
-		h.renderStatus(w, "setup", pageData{Title: "Set up CronLite", Error: "The form expired. Please try again.", CSRFToken: h.issuePublicCSRF(w)}, http.StatusForbidden)
+		h.renderStatus(w, "setup", pageData{Title: "初始化 CronLite", Error: "表单已过期，请重试。", CSRFToken: h.issuePublicCSRF(w)}, http.StatusForbidden)
 		return
 	}
 	if h.bootstrapToken == "" || !constantTimeEqual(h.bootstrapToken, r.FormValue("bootstrap_token")) {
-		h.renderStatus(w, "setup", pageData{Title: "Set up CronLite", Error: "Invalid installation token.", CSRFToken: h.issuePublicCSRF(w)}, http.StatusUnauthorized)
+		h.renderStatus(w, "setup", pageData{Title: "初始化 CronLite", Error: "安装令牌无效。", CSRFToken: h.issuePublicCSRF(w)}, http.StatusUnauthorized)
 		return
 	}
 	namespace := strings.TrimSpace(r.FormValue("namespace"))
 	label := strings.TrimSpace(r.FormValue("label"))
 	if namespace == "" || label == "" {
-		h.renderStatus(w, "setup", pageData{Title: "Set up CronLite", Error: "Namespace and key label are required.", CSRFToken: h.issuePublicCSRF(w)}, http.StatusUnprocessableEntity)
+		h.renderStatus(w, "setup", pageData{Title: "初始化 CronLite", Error: "工作空间和密钥名称不能为空。", CSRFToken: h.issuePublicCSRF(w)}, http.StatusUnprocessableEntity)
 		return
 	}
 
@@ -98,14 +98,14 @@ func (h *Handler) setup(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	data := pageData{
-		Title: "Setup complete", Namespace: result.Key.Namespace.String(), APIKey: result.PlaintextToken,
+		Title: "初始化完成", Namespace: result.Key.Namespace.String(), APIKey: result.PlaintextToken,
 	}
 	if _, err := h.sessions.login(r.Context(), w, r, result.PlaintextToken); err != nil {
 		h.logger.Printf(
 			"webadmin: event=bootstrap_automatic_login_failed error_class=%s",
 			errorClass(err),
 		)
-		data.Notice = "Automatic sign-in was unavailable. Save this key, then sign in with it."
+		data.Notice = "自动登录暂不可用。请保存此密钥，然后使用它登录。"
 	} else {
 		data.SetupAuthenticated = true
 	}
@@ -120,7 +120,7 @@ func (h *Handler) logout(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if !validateCSRF(auth.Session.CSRFToken, r.FormValue("csrf_token")) {
-		http.Error(w, "invalid CSRF token", http.StatusForbidden)
+		http.Error(w, "CSRF 校验失败", http.StatusForbidden)
 		return
 	}
 	if err := h.sessions.logout(r.Context(), w, r); err != nil {

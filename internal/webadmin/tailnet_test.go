@@ -136,14 +136,14 @@ func TestTailscalePageRequiresAuth(t *testing.T) {
 
 func TestTailscalePageNotBuiltIn(t *testing.T) {
 	body := getTailnet(t, "/admin/tailscale", nil, TailnetConfig{}, nil)
-	assertContains(t, body, "Tailscale is not built into this binary", "-tags tailscale", `href="/admin/tailscale" aria-current="page"`)
-	assertNotContains(t, body, "MagicDNS name", "Jobs calling tailnet hosts")
+	assertContains(t, body, "当前程序未内置 Tailscale", "-tags tailscale", `href="/admin/tailscale" aria-current="page"`)
+	assertNotContains(t, body, "MagicDNS 名称", "调用 Tailnet 主机的任务")
 }
 
 func TestTailscalePageBuiltButOff(t *testing.T) {
 	body := getTailnet(t, "/admin/tailscale", nil, TailnetConfig{Built: true}, nil)
-	assertContains(t, body, "Tailscale is built in but not enabled", "TS_STATE_DIR")
-	assertNotContains(t, body, "not built into this binary", "MagicDNS name")
+	assertContains(t, body, "已内置 Tailscale，但尚未启用", "TS_STATE_DIR")
+	assertNotContains(t, body, "当前程序未内置 Tailscale", "MagicDNS 名称")
 }
 
 func TestTailscalePageRunningNode(t *testing.T) {
@@ -160,13 +160,13 @@ func TestTailscalePageRunningNode(t *testing.T) {
 	body := getTailnet(t, "/admin/tailscale", svc, tc, nil)
 
 	assertContains(t, body,
-		"Connected", "cronlite."+testSuffix, testSuffix, "100.64.0.7", "tag:cronlite", "example.com",
-		"https://cronlite."+testSuffix, "On <code>:8080</code>", "Over the public listener",
+		"已连接", "cronlite."+testSuffix, testSuffix, "100.64.0.7", "tag:cronlite", "example.com",
+		"https://cronlite."+testSuffix, "<code>:8080</code>", "通过公网监听访问",
 		`<span class="tag">invoices</span>`, `<span class="tag">status</span>`,
-		"pay-invoices", "read-secrets", "Tailnet · allowed", "Tailnet · blocked",
+		"pay-invoices", "read-secrets", "Tailnet · 已放行", "Tailnet · 已阻止",
 	)
 	// Other namespaces' allowlist entries stay hidden.
-	assertNotContains(t, body, `<span class="tag">secret</span>`, "other=", "public-job", "Key expiry soon", "not running")
+	assertNotContains(t, body, `<span class="tag">secret</span>`, "other=", "public-job", "节点密钥将在", "未运行")
 }
 
 func TestTailscalePageNodeProblems(t *testing.T) {
@@ -175,9 +175,9 @@ func TestTailscalePageNodeProblems(t *testing.T) {
 		node *fakeTailnetNode
 		want string
 	}{
-		{"needs login", &fakeTailnetNode{info: tailnet.Info{BackendState: "NeedsLogin"}}, "The tailnet node is not running (state: NeedsLogin)"},
-		{"status error", &fakeTailnetNode{infoErr: errors.New("boom")}, "did not report its status"},
-		{"key expiring", &fakeTailnetNode{info: tailnet.Info{BackendState: "Running", KeyExpiry: time.Date(2026, 7, 30, 0, 0, 0, 0, time.UTC)}}, "The node key expires 2026-07-30"},
+		{"needs login", &fakeTailnetNode{info: tailnet.Info{BackendState: "NeedsLogin"}}, "Tailnet 节点未运行（状态：NeedsLogin）"},
+		{"status error", &fakeTailnetNode{infoErr: errors.New("boom")}, "Tailnet 节点未返回状态"},
+		{"key expiring", &fakeTailnetNode{info: tailnet.Info{BackendState: "Running", KeyExpiry: time.Date(2026, 7, 30, 0, 0, 0, 0, time.UTC)}}, "节点密钥将在 2026-07-30"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -192,8 +192,8 @@ func TestTailscalePageDeliveryOffAndTailnetOnly(t *testing.T) {
 	ctx := tailnet.WithViaTailnet(context.Background())
 	tc := TailnetConfig{Built: true, Listen: true, DisablePublicListener: true, Node: runningNode()}
 	body := getTailnet(t, "/admin/tailscale", nil, tc, ctx)
-	assertContains(t, body, "Over the tailnet", "Disabled <small", "TS_DISABLE_PUBLIC_LISTENER=true", "Off: tailnet hosts are not reachable")
-	assertNotContains(t, body, "This namespace may call")
+	assertContains(t, body, "通过 Tailnet 访问", "已禁用 <small", "TS_DISABLE_PUBLIC_LISTENER=true", "已关闭：无法访问 Tailnet 主机")
+	assertNotContains(t, body, "当前工作空间可以调用")
 }
 
 func TestTailscalePageMarksScanLimit(t *testing.T) {
@@ -203,7 +203,7 @@ func TestTailscalePageMarksScanLimit(t *testing.T) {
 	}
 	svc := &fakeAdminService{hasKeys: true, jobs: jobs}
 	body := getTailnet(t, "/admin/tailscale", svc, TailnetConfig{Built: true, Listen: true, Node: runningNode()}, nil)
-	assertContains(t, body, "Only the first 2,000 jobs were checked.", "No job in this namespace calls a tailnet host.")
+	assertContains(t, body, "仅检查了前 2,000 个任务。", "当前工作空间没有调用 Tailnet 主机的任务。")
 	if svc.listFilter.Namespace != "team" || svc.listFilter.Offset != tailnetJobScanLimit-tailnetJobPageSize {
 		t.Fatalf("last list filter = %+v", svc.listFilter)
 	}
@@ -219,10 +219,10 @@ func TestJobsShowTailnetBadges(t *testing.T) {
 		t.Run(view, func(t *testing.T) {
 			svc := &fakeAdminService{hasKeys: true, jobs: []domain.JobWithSchedule{allowed, blocked, public}}
 			body := getTailnet(t, "/admin/jobs?view="+view, svc, tc, nil)
-			if got := strings.Count(body, "Tailnet · allowed"); got != 1 {
+			if got := strings.Count(body, "Tailnet · 已放行"); got != 1 {
 				t.Errorf("allowed badges = %d, want 1", got)
 			}
-			if got := strings.Count(body, "Tailnet · blocked"); got != 1 {
+			if got := strings.Count(body, "Tailnet · 已阻止"); got != 1 {
 				t.Errorf("blocked badges = %d, want 1", got)
 			}
 		})
@@ -240,11 +240,11 @@ func TestJobDetailExplainsBlockedTailnetHost(t *testing.T) {
 	svc := &fakeAdminService{hasKeys: true, job: row.Job, schedule: row.Schedule}
 	tc := TailnetConfig{Built: true, Delivery: true, Policy: mustPolicy(t, "team=invoices"), Node: runningNode()}
 	body := getTailnet(t, "/admin/jobs/"+row.Job.ID.String(), svc, tc, nil)
-	assertContains(t, body, "Tailnet · blocked", "This namespace may not call this host (WEBHOOK_TAILNET_HOSTS).", `href="/admin/tailscale"`)
+	assertContains(t, body, "Tailnet · 已阻止", "当前工作空间无权调用该主机（WEBHOOK_TAILNET_HOSTS）。", `href="/admin/tailscale"`)
 
 	tc.Delivery, tc.Policy = false, nil
 	body = getTailnet(t, "/admin/jobs/"+row.Job.ID.String(), svc, tc, nil)
-	assertContains(t, body, "Tailnet delivery is off (WEBHOOK_ALLOW_TAILNET).")
+	assertContains(t, body, "Tailnet 投递已关闭（WEBHOOK_ALLOW_TAILNET）。")
 }
 
 func TestJobFormTailnetHint(t *testing.T) {
@@ -258,23 +258,23 @@ func TestJobFormTailnetHint(t *testing.T) {
 		{
 			name:     "allowed hosts",
 			tc:       TailnetConfig{Built: true, Delivery: true, Policy: mustPolicy(t, "team=invoices;other=secret;*=status"), Node: runningNode()},
-			want:     []string{`aria-describedby="webhook_help"`, "<code>invoices." + testSuffix + "</code>, <code>status." + testSuffix + "</code>"},
+			want:     []string{`aria-describedby="webhook_help"`, "<code>invoices." + testSuffix + "</code>、<code>status." + testSuffix + "</code>"},
 			unwanted: []string{"secret." + testSuffix},
 		},
 		{
 			name: "every host",
 			tc:   TailnetConfig{Built: true, Delivery: true, Policy: mustPolicy(t, "*=*"), Node: runningNode()},
-			want: []string{"may call any tailnet host"},
+			want: []string{"可以调用", "下的任意 Tailnet 主机"},
 		},
 		{
 			name: "no host",
 			tc:   TailnetConfig{Built: true, Delivery: true, Policy: mustPolicy(t, "other=secret"), Node: runningNode()},
-			want: []string{"may not call any tailnet host"},
+			want: []string{"不能调用", "下的任何 Tailnet 主机"},
 		},
 		{
 			name: "delivery off",
 			tc:   TailnetConfig{Built: true, Listen: true, Node: runningNode()},
-			want: []string{"Tailnet delivery is off"},
+			want: []string{"Tailnet 投递已关闭"},
 		},
 		{
 			name:     "no node",

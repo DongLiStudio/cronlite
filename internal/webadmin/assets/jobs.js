@@ -12,7 +12,7 @@
     // Disallow acting on an old selection while new filters are pending.
     results.inert = true;
     results.querySelectorAll('[name="job_id"]').forEach(input => { input.checked = false; });
-    feedback.textContent = 'Updating jobs…';
+    feedback.textContent = '正在更新任务…';
   };
   const cancel = () => {
     clearTimeout(timer);
@@ -51,12 +51,12 @@
       form.querySelector('a').href = filters.querySelector('a').href;
       if (historyMode === 'push') history.pushState(null, '', resolved);
       else if (historyMode === 'replace') history.replaceState(null, '', resolved);
-      feedback.textContent = results.querySelector('.pagination span')?.textContent || 'Jobs updated.';
+      feedback.textContent = results.querySelector('.pagination span')?.textContent || '任务列表已更新。';
     } catch (error) {
       if (version !== generation) return;
       document.getElementById('fleet-results').setAttribute('aria-busy', 'false');
       // Keep stale actions inert. A retry or ordinary page load restores them.
-      feedback.textContent = 'Could not update jobs. Retry with Filter or reload the page.';
+      feedback.textContent = '无法更新任务列表。请点击“筛选”重试，或刷新页面。';
     } finally {
       clearTimeout(timeout);
     }
@@ -65,7 +65,7 @@
     const version = cancel();
     pending();
     if (!form.checkValidity()) {
-      feedback.textContent = 'Enter a complete tag as key=value.';
+      feedback.textContent = '请输入完整的标签，格式为 key=value。';
       return;
     }
     timer = setTimeout(() => load(filterURL(), version, 'replace'), delay);
@@ -73,7 +73,7 @@
   const tag = form.elements.namedItem('tag');
   // Incomplete tag input should not send invalid queries or interrupt typing.
   tag.addEventListener('input', () => {
-    tag.setCustomValidity(tag.value && !/^[^=]+=.+$/.test(tag.value) ? 'Enter a complete tag as key=value.' : '');
+    tag.setCustomValidity(tag.value && !/^[^=]+=.+$/.test(tag.value) ? '请输入完整的标签，格式为 key=value。' : '');
   });
   form.addEventListener('input', event => {
     if (composing || event.isComposing) return;

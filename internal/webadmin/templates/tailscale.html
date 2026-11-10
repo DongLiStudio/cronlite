@@ -2,56 +2,56 @@
 {{template "head" .}}
 {{template "nav" .}}
 <main id="main"><div class="page">
-  <div class="page-head"><div><h1>Tailscale</h1><p>Read-only. Change these settings in the server environment, then restart.</p></div>{{if .Tailnet.Built}}<a class="btn btn-secondary" href="/admin/tailscale">{{icon "refresh"}}Refresh</a>{{end}}</div>
+  <div class="page-head"><div><h1>Tailscale</h1><p>此页只读。请在服务器环境中修改设置并重启服务。</p></div>{{if .Tailnet.Built}}<a class="btn btn-secondary" href="/admin/tailscale">{{icon "refresh"}}刷新</a>{{end}}</div>
   {{with .Tailnet}}
   {{if not .Built}}
   <section class="card"><div class="card-body stack">
-    <div><h2>Tailscale is not built into this binary</h2><p class="muted">The default build leaves Tailscale out to keep the binary small. Tailnet delivery (<code>WEBHOOK_ALLOW_TAILNET</code>) and tailnet access (<code>TS_LISTEN</code>) need a build made with the <code>tailscale</code> tag:</p></div>
+    <div><h2>当前程序未内置 Tailscale</h2><p class="muted">默认构建为了减小体积未包含 Tailscale。如需向 Tailnet 主机投递（<code>WEBHOOK_ALLOW_TAILNET</code>）或在 Tailnet 上访问（<code>TS_LISTEN</code>），请使用 <code>tailscale</code> 构建标签重新构建：</p></div>
     <pre class="secret"><code>docker build --build-arg TAGS=tailscale -t cronlite:tailscale .
 go build -tags tailscale -o cronlite ./cmd/cronlite</code></pre>
-    <p class="help">See <code>TAILSCALE.md</code> in the CronLite repository for the step-by-step guide.</p>
+    <p class="help">详细步骤见 CronLite 仓库中的 <code>TAILSCALE.md</code>。</p>
   </div></section>
   {{else if not .Started}}
   <section class="card"><div class="card-body stack">
-    <div><h2>Tailscale is built in but not enabled</h2><p class="muted">Set <code>WEBHOOK_ALLOW_TAILNET=true</code> (with <code>WEBHOOK_TAILNET_HOSTS</code>) to deliver webhooks to tailnet hosts, or <code>TS_LISTEN=true</code> to serve CronLite on the tailnet. Both need <code>TS_STATE_DIR</code>.</p></div>
-    <p class="help">See <code>TAILSCALE.md</code> in the CronLite repository for the step-by-step guide.</p>
+    <div><h2>已内置 Tailscale，但尚未启用</h2><p class="muted">设置 <code>WEBHOOK_ALLOW_TAILNET=true</code>（并配置 <code>WEBHOOK_TAILNET_HOSTS</code>）可向 Tailnet 主机投递；设置 <code>TS_LISTEN=true</code> 可通过 Tailnet 提供 CronLite 服务。两者都需要 <code>TS_STATE_DIR</code>。</p></div>
+    <p class="help">详细步骤见 CronLite 仓库中的 <code>TAILSCALE.md</code>。</p>
   </div></section>
   {{else}}
-  {{if .Info.BackendState}}{{if not .Running}}<div class="error" role="alert">{{icon "alert"}}<p>The tailnet node is not running (state: {{.Info.BackendState}}). Tailnet deliveries and tailnet access fail until it reconnects.</p></div>{{end}}{{end}}
-  {{if .InfoError}}<div class="error" role="alert">{{icon "alert"}}<p>The tailnet node did not report its status. It may be stopped or unresponsive.</p></div>{{end}}
-  {{if .KeyExpiresSoon}}<div class="error" role="alert">{{icon "alert"}}<p>The node key expires {{formatTime .Info.KeyExpiry}}. Re-authenticate the node, or use a tagged auth key so it never expires.</p></div>{{end}}
+  {{if .Info.BackendState}}{{if not .Running}}<div class="error" role="alert">{{icon "alert"}}<p>Tailnet 节点未运行（状态：{{.Info.BackendState}}）。重新连接前，Tailnet 投递和访问都会失败。</p></div>{{end}}{{end}}
+  {{if .InfoError}}<div class="error" role="alert">{{icon "alert"}}<p>Tailnet 节点未返回状态，可能已停止或没有响应。</p></div>{{end}}
+  {{if .KeyExpiresSoon}}<div class="error" role="alert">{{icon "alert"}}<p>节点密钥将在 {{formatTime .Info.KeyExpiry}} 过期。请重新认证节点，或使用带标签且不会过期的认证密钥。</p></div>{{end}}
 
   <div class="split">
-    <section class="card"><div class="card-head"><h2>Node</h2>{{if .Running}}<span class="badge ok">Connected</span>{{else}}<span class="badge bad">{{if .Info.BackendState}}{{.Info.BackendState}}{{else}}Unknown{{end}}</span>{{end}}</div>
+    <section class="card"><div class="card-head"><h2>节点</h2>{{if .Running}}<span class="badge ok">已连接</span>{{else}}<span class="badge bad">{{if .Info.BackendState}}{{.Info.BackendState}}{{else}}未知{{end}}</span>{{end}}</div>
       <div class="card-body"><dl class="kv">
-        <dt>MagicDNS name</dt><dd><code>{{if .Info.DNSName}}{{.Info.DNSName}}{{else}}{{.Hostname}}.{{.Suffix}}{{end}}</code></dd>
-        <dt>Tailnet suffix</dt><dd><code>{{.Suffix}}</code></dd>
+        <dt>MagicDNS 名称</dt><dd><code>{{if .Info.DNSName}}{{.Info.DNSName}}{{else}}{{.Hostname}}.{{.Suffix}}{{end}}</code></dd>
+        <dt>Tailnet 后缀</dt><dd><code>{{.Suffix}}</code></dd>
         {{if .Info.TailnetName}}<dt>Tailnet</dt><dd>{{.Info.TailnetName}}</dd>{{end}}
-        <dt>Addresses</dt><dd>{{range .Addrs}}<code>{{.}}</code> {{else}}—{{end}}</dd>
-        <dt>Logged in as</dt><dd>{{range .Info.Tags}}<span class="tag">{{.}}</span>{{else}}{{if .Info.LoginName}}{{.Info.LoginName}}{{else}}—{{end}}{{end}}</dd>
-        <dt>Key expiry</dt><dd>{{if .Info.KeyExpiry.IsZero}}Never{{else}}{{formatTime .Info.KeyExpiry}}{{end}}</dd>
-        {{if .Info.Health}}<dt>Health</dt><dd><ul class="list">{{range .Info.Health}}<li>{{.}}</li>{{end}}</ul></dd>{{end}}
+        <dt>地址</dt><dd>{{range .Addrs}}<code>{{.}}</code> {{else}}—{{end}}</dd>
+        <dt>登录身份</dt><dd>{{range .Info.Tags}}<span class="tag">{{.}}</span>{{else}}{{if .Info.LoginName}}{{.Info.LoginName}}{{else}}—{{end}}{{end}}</dd>
+        <dt>密钥有效期</dt><dd>{{if .Info.KeyExpiry.IsZero}}永不过期{{else}}{{formatTime .Info.KeyExpiry}}{{end}}</dd>
+        {{if .Info.Health}}<dt>健康状态</dt><dd><ul class="list">{{range .Info.Health}}<li>{{.}}</li>{{end}}</ul></dd>{{end}}
       </dl></div></section>
-    <section class="card"><div class="card-head"><h2>Access</h2></div>
+    <section class="card"><div class="card-head"><h2>访问</h2></div>
       <div class="card-body"><dl class="kv stacked">
-        <dt>This page</dt><dd>{{if .ViaTailnet}}<span class="badge ok">Over the tailnet</span>{{else}}<span class="badge">Over the public listener</span>{{end}}</dd>
-        <dt>Tailnet access</dt><dd>{{if .Listen}}On{{else}}Off{{end}} <small class="sub muted mono">TS_LISTEN</small></dd>
-        <dt>Identity sign-in</dt><dd>{{if .IdentityLogin}}On{{else}}Off{{end}} <small class="sub muted mono">TS_IDENTITY_LOGIN</small></dd>
-        {{if .Listen}}<dt>Tailnet URL</dt><dd>{{if .CertDomain}}<code>https://{{.CertDomain}}</code>{{else}}HTTPS certificates are disabled on this tailnet{{end}}</dd>{{end}}
-        <dt>Public listener</dt><dd>{{if .DisablePublicListener}}Disabled{{else}}On <code>{{.PublicAddr}}</code>{{end}} <small class="sub muted mono">TS_DISABLE_PUBLIC_LISTENER={{.DisablePublicListener}}</small></dd>
+        <dt>当前页面</dt><dd>{{if .ViaTailnet}}<span class="badge ok">通过 Tailnet 访问</span>{{else}}<span class="badge">通过公网监听访问</span>{{end}}</dd>
+        <dt>Tailnet 访问</dt><dd>{{if .Listen}}已开启{{else}}已关闭{{end}} <small class="sub muted mono">TS_LISTEN</small></dd>
+        <dt>身份登录</dt><dd>{{if .IdentityLogin}}已开启{{else}}已关闭{{end}} <small class="sub muted mono">TS_IDENTITY_LOGIN</small></dd>
+        {{if .Listen}}<dt>Tailnet 地址</dt><dd>{{if .CertDomain}}<code>https://{{.CertDomain}}</code>{{else}}此 Tailnet 未启用 HTTPS 证书{{end}}</dd>{{end}}
+        <dt>公网监听</dt><dd>{{if .DisablePublicListener}}已禁用{{else}}已开启 <code>{{.PublicAddr}}</code>{{end}} <small class="sub muted mono">TS_DISABLE_PUBLIC_LISTENER={{.DisablePublicListener}}</small></dd>
       </dl></div></section>
   </div>
 
   <section class="card mt">
-    <div class="card-head"><div><h2>Webhook delivery</h2><p>{{if .Delivery}}On: hosts under <code>{{.Suffix}}</code> are called over the tailnet{{else}}Off: tailnet hosts are not reachable{{end}} · <code>WEBHOOK_ALLOW_TAILNET</code></p></div>{{if .Delivery}}<span class="badge ok">On</span>{{else}}<span class="badge">Off</span>{{end}}</div>
-    {{if .Delivery}}<div class="card-body"><dl class="kv"><dt>This namespace may call</dt><dd>{{if .AllHosts}}Every tailnet host{{else}}{{range .Hosts}}<span class="tag">{{.}}</span>{{else}}No tailnet hosts{{end}}{{end}}</dd></dl>
-      <p class="help">Only this namespace's entries in <code>WEBHOOK_TAILNET_HOSTS</code> (and the <code>*</code> entry) are shown.</p></div>{{end}}
-    <div class="card-head"><h2>Jobs calling tailnet hosts</h2></div>
-    <div class="table-wrap"><table><thead><tr><th>Job</th><th>Host</th><th>Delivery</th></tr></thead><tbody>
-    {{range .Jobs}}<tr><td><a class="row-link" href="/admin/jobs/{{.Job.Job.ID}}">{{.Job.Job.Name}}</a>{{if not .Job.Job.Enabled}} <span class="muted">(paused)</span>{{end}}</td><td><code>{{.Target.Host}}</code></td><td>{{template "tailnet_badge" .Target}}{{if not .Target.Allowed}}<span class="sub">{{.Target.Reason}}</span>{{end}}</td></tr>
-    {{else}}<tr><td colspan="3" class="empty">No job in this namespace calls a tailnet host.</td></tr>{{end}}
+    <div class="card-head"><div><h2>Webhook 投递</h2><p>{{if .Delivery}}已开启：<code>{{.Suffix}}</code> 下的主机会通过 Tailnet 调用{{else}}已关闭：无法访问 Tailnet 主机{{end}} · <code>WEBHOOK_ALLOW_TAILNET</code></p></div>{{if .Delivery}}<span class="badge ok">已开启</span>{{else}}<span class="badge">已关闭</span>{{end}}</div>
+    {{if .Delivery}}<div class="card-body"><dl class="kv"><dt>当前工作空间可调用</dt><dd>{{if .AllHosts}}全部 Tailnet 主机{{else}}{{range .Hosts}}<span class="tag">{{.}}</span>{{else}}没有可调用的 Tailnet 主机{{end}}{{end}}</dd></dl>
+      <p class="help">此处只显示当前工作空间在 <code>WEBHOOK_TAILNET_HOSTS</code> 中的条目（以及 <code>*</code> 条目）。</p></div>{{end}}
+    <div class="card-head"><h2>调用 Tailnet 主机的任务</h2></div>
+    <div class="table-wrap"><table><thead><tr><th>任务</th><th>主机</th><th>投递</th></tr></thead><tbody>
+    {{range .Jobs}}<tr><td><a class="row-link" href="/admin/jobs/{{.Job.Job.ID}}">{{.Job.Job.Name}}</a>{{if not .Job.Job.Enabled}} <span class="muted">（已暂停）</span>{{end}}</td><td><code>{{.Target.Host}}</code></td><td>{{template "tailnet_badge" .Target}}{{if not .Target.Allowed}}<span class="sub">{{.Target.Reason}}</span>{{end}}</td></tr>
+    {{else}}<tr><td colspan="3" class="empty">当前工作空间没有调用 Tailnet 主机的任务。</td></tr>{{end}}
     </tbody></table></div>
-    {{if .JobsLimited}}<p class="help pad-x">Only the first 2,000 jobs were checked.</p>{{end}}
+    {{if .JobsLimited}}<p class="help pad-x">仅检查了前 2,000 个任务。</p>{{end}}
   </section>
   {{end}}
   {{end}}
@@ -59,4 +59,4 @@ go build -tags tailscale -o cronlite ./cmd/cronlite</code></pre>
 {{template "foot" .}}
 {{end}}
 
-{{define "tailnet_badge"}}{{if .Allowed}}<span class="badge ok">Tailnet · allowed</span>{{else}}<span class="badge bad" title="{{.Reason}}">Tailnet · blocked</span>{{end}}{{end}}
+{{define "tailnet_badge"}}{{if .Allowed}}<span class="badge ok">Tailnet · 已放行</span>{{else}}<span class="badge bad" title="{{.Reason}}">Tailnet · 已阻止</span>{{end}}{{end}}

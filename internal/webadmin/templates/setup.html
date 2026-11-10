@@ -3,22 +3,22 @@
 <main id="main" class="auth"><div>
   <section class="card"><div class="card-body">
     <span class="brand"><img src="/admin/assets/favicon.svg" alt="">CronLite</span>
-    <h1>Set up CronLite</h1>
-    <p class="lede">Create a workspace and its first API key.</p>
+    <h1>初始化 CronLite</h1>
+    <p class="lede">创建工作空间并生成第一个 API 密钥。</p>
     {{template "messages" .}}
     {{template "tailnet_signin" .}}
     <form method="post" action="/admin/setup">
       <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
-      <div class="field"><label for="bootstrap_token">Installation token</label>
+      <div class="field"><label for="bootstrap_token">安装令牌</label>
       <input id="bootstrap_token" name="bootstrap_token" type="password" autocomplete="off" aria-describedby="bootstrap_token_help" required>
-      <p class="help" id="bootstrap_token_help">Paste the <code>ADMIN_BOOTSTRAP_TOKEN</code> configured on the server.</p></div>
-      <div class="field"><label for="namespace">Namespace</label>
+      <p class="help" id="bootstrap_token_help">填写服务器环境变量中配置的 <code>ADMIN_BOOTSTRAP_TOKEN</code>。</p></div>
+      <div class="field"><label for="namespace">工作空间</label>
       <input id="namespace" name="namespace" type="text" maxlength="128" aria-describedby="namespace_help" required>
-      <p class="help" id="namespace_help">Choose the isolated workspace name, for example <code>team-prod</code>.</p></div>
-      <div class="field"><label for="label">Key label</label>
+      <p class="help" id="namespace_help">填写隔离工作空间名称，例如 <code>team-prod</code>。</p></div>
+      <div class="field"><label for="label">密钥名称</label>
       <input id="label" name="label" type="text" maxlength="128" value="owner" aria-describedby="label_help" required>
-      <p class="help" id="label_help">Give this key a recognizable name, for example <code>owner</code>.</p></div>
-      <button class="btn btn-primary full-width" type="submit">Create first key</button>
+      <p class="help" id="label_help">填写便于识别的名称，例如 <code>owner</code>。</p></div>
+      <button class="btn btn-primary full-width" type="submit">创建第一个密钥</button>
     </form>
   </div></section>
 {{template "public_foot" .}}
@@ -29,13 +29,13 @@
 <main id="main" class="auth"><div>
   <section class="card"><div class="card-body stack">
     <span class="brand"><img src="/admin/assets/favicon.svg" alt="">CronLite</span>
-    <div><h1>Save your API key</h1><p class="lede">This key is shown once. Store it in a password manager before continuing.</p></div>
+    <div><h1>保存 API 密钥</h1><p class="lede">密钥只显示一次。请先存入密码管理器再继续。</p></div>
     {{template "messages" .}}
-    <div class="field"><span class="label">API key · namespace <code>{{.Namespace}}</code></span><pre class="secret" tabindex="0" aria-label="New API key">{{.APIKey}}</pre></div>
+    <div class="field"><span class="label">API 密钥 · 工作空间 <code>{{.Namespace}}</code></span><pre class="secret" tabindex="0" aria-label="新的 API 密钥">{{.APIKey}}</pre></div>
     {{if .SetupAuthenticated}}
-    <div class="actions"><a class="btn btn-primary" href="/admin/onboarding">Continue to workspace{{icon "arrow"}}</a><a class="btn btn-secondary" href="/admin/jobs">Skip onboarding</a></div>
+    <div class="actions"><a class="btn btn-primary" href="/admin/onboarding">进入工作空间{{icon "arrow"}}</a><a class="btn btn-secondary" href="/admin/jobs">跳过引导</a></div>
     {{else}}
-    <a class="btn btn-primary full-width" href="/admin/login">Sign in</a>
+    <a class="btn btn-primary full-width" href="/admin/login">登录</a>
     {{end}}
   </div></section>
 {{template "public_foot" .}}

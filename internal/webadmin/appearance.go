@@ -43,7 +43,7 @@ func (h *Handler) saveAppearance(w http.ResponseWriter, r *http.Request) {
 	case "auto":
 		cookie.MaxAge, cookie.Expires = -1, time.Unix(1, 0)
 	default:
-		http.Error(w, "invalid theme", http.StatusBadRequest)
+		http.Error(w, "主题无效", http.StatusBadRequest)
 		return
 	}
 	http.SetCookie(w, cookie)
@@ -58,7 +58,7 @@ func nextRun(now func() time.Time) func(domain.JobWithSchedule) nextRunText {
 	parser := cron.NewParser()
 	return func(row domain.JobWithSchedule) nextRunText {
 		if !row.Job.Enabled {
-			return nextRunText{Text: "Paused"}
+			return nextRunText{Text: "已暂停"}
 		}
 		schedule, err := parser.Parse(row.Schedule.CronExpression, row.Schedule.Timezone)
 		if err != nil {
@@ -72,13 +72,13 @@ func nextRun(now func() time.Time) func(domain.JobWithSchedule) nextRunText {
 		exact := next.UTC().Format("2006-01-02 15:04:05 UTC")
 		switch d := next.Sub(current); {
 		case d < time.Minute:
-			return nextRunText{"in under a minute", exact}
+			return nextRunText{"不到 1 分钟后", exact}
 		case d < time.Hour:
-			return nextRunText{fmt.Sprintf("in %d min", int(d.Minutes())), exact}
+			return nextRunText{fmt.Sprintf("%d 分钟后", int(d.Minutes())), exact}
 		case d < 48*time.Hour:
-			return nextRunText{fmt.Sprintf("in %d h", int(d.Hours())), exact}
+			return nextRunText{fmt.Sprintf("%d 小时后", int(d.Hours())), exact}
 		default:
-			return nextRunText{next.UTC().Format("Jan 2 15:04 UTC"), exact}
+			return nextRunText{next.UTC().Format("2006-01-02 15:04 UTC"), exact}
 		}
 	}
 }

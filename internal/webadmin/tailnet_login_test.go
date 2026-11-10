@@ -67,7 +67,7 @@ func TestLoginPageTailnetSignIn(t *testing.T) {
 	}{
 		{
 			name: "one namespace", node: &fakeTailnetNode{id: alice("billing")}, via: true,
-			want: []string{`action="/admin/login/tailscale"`, "Continue as alice@example.com", `name="namespace" value="billing"`, "Alice"},
+			want: []string{`action="/admin/login/tailscale"`, "继续以 alice@example.com 登录", `name="namespace" value="billing"`, "Alice"},
 		},
 		{
 			name: "several namespaces", node: &fakeTailnetNode{id: alice("ops", "billing")}, via: true,
@@ -75,22 +75,22 @@ func TestLoginPageTailnetSignIn(t *testing.T) {
 		},
 		{
 			name: "no grant", node: &fakeTailnetNode{id: alice()}, via: true,
-			want:     []string{"with no CronLite namespace", tailnet.AdminCapability},
+			want:     []string{"尚未获得任何 CronLite 工作空间权限", tailnet.AdminCapability},
 			unwanted: []string{"/admin/login/tailscale"},
 		},
 		{
 			name: "invalid grant", node: &fakeTailnetNode{id: alice("*")}, via: true,
-			want:     []string{"the grant is invalid"},
+			want:     []string{"授权内容无效"},
 			unwanted: []string{"/admin/login/tailscale"},
 		},
 		{
 			name: "tagged device", node: &fakeTailnetNode{id: tailnet.Identity{Tagged: true, AdminCaps: alice("billing").AdminCaps}}, via: true,
-			want:     []string{"This device is tagged"},
+			want:     []string{"此设备使用标签身份"},
 			unwanted: []string{"/admin/login/tailscale"},
 		},
 		{
 			name: "whois fails", node: &fakeTailnetNode{whoisErr: errors.New("boom")}, via: true,
-			want:     []string{"could not be checked"},
+			want:     []string{"暂时无法核验 Tailscale 身份"},
 			unwanted: []string{"/admin/login/tailscale", "boom"},
 		},
 		{
@@ -279,7 +279,7 @@ func TestKeysPageMarksTailnetKeys(t *testing.T) {
 }
 
 func TestSetupPageWithoutBootstrapToken(t *testing.T) {
-	const missing = "Set ADMIN_BOOTSTRAP_TOKEN and restart CronLite before continuing."
+	const missing = "请先设置 ADMIN_BOOTSTRAP_TOKEN 并重启 CronLite。"
 	get := func(node *fakeTailnetNode) string {
 		h := newTailnetTestHandler(t, &fakeAdminService{hasKeys: false}, &fakeAdminSessionStore{}, identityConfig(node))
 		rec := httptest.NewRecorder()
@@ -291,7 +291,7 @@ func TestSetupPageWithoutBootstrapToken(t *testing.T) {
 	}
 
 	body := get(&fakeTailnetNode{id: alice("billing")})
-	assertContains(t, body, "Continue as alice@example.com")
+	assertContains(t, body, "继续以 alice@example.com 登录")
 	assertNotContains(t, body, missing)
 
 	assertContains(t, get(&fakeTailnetNode{id: alice()}), missing)

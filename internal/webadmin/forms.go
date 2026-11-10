@@ -33,10 +33,10 @@ func parseTags(raw string) ([]domain.Tag, error) {
 		key = strings.TrimSpace(key)
 		value = strings.TrimSpace(value)
 		if !ok || key == "" || value == "" {
-			return nil, fmt.Errorf("tag line %d must use key=value", lineNumber+1)
+			return nil, fmt.Errorf("第 %d 行标签必须使用 key=value 格式", lineNumber+1)
 		}
 		if _, exists := seen[key]; exists {
-			return nil, fmt.Errorf("duplicate tag key %q", key)
+			return nil, fmt.Errorf("标签键 %q 重复", key)
 		}
 		seen[key] = struct{}{}
 		tags = append(tags, domain.Tag{Key: key, Value: value})
@@ -78,7 +78,7 @@ func parseUpdateJobForm(r *http.Request) (service.UpdateJobInput, jobFormValues,
 	secret := r.FormValue("webhook_secret")
 	clearSecret := r.FormValue("clear_webhook_secret") == "true"
 	if clearSecret && secret != "" {
-		return service.UpdateJobInput{}, values, errors.New("choose either a new secret or clear secret")
+		return service.UpdateJobInput{}, values, errors.New("不能同时设置新密钥和清除密钥")
 	}
 	if clearSecret {
 		empty := ""
@@ -92,7 +92,7 @@ func parseUpdateJobForm(r *http.Request) (service.UpdateJobInput, jobFormValues,
 
 func parseCommonJobForm(r *http.Request) (jobFormValues, time.Duration, []domain.Tag, error) {
 	if err := r.ParseForm(); err != nil {
-		return jobFormValues{}, 0, nil, errors.New("invalid form submission")
+		return jobFormValues{}, 0, nil, errors.New("表单提交无效")
 	}
 
 	values := jobFormValues{
@@ -104,12 +104,12 @@ func parseCommonJobForm(r *http.Request) (jobFormValues, time.Duration, []domain
 		Tags:           r.FormValue("tags"),
 	}
 	if values.Name == "" || values.CronExpression == "" || values.Timezone == "" || values.WebhookURL == "" {
-		return values, 0, nil, errors.New("name, cron expression, timezone, and webhook URL are required")
+		return values, 0, nil, errors.New("任务名称、Cron 表达式、时区和 Webhook 地址不能为空")
 	}
 
 	seconds, err := strconv.Atoi(values.TimeoutSeconds)
 	if err != nil || seconds < 1 || seconds > 60 {
-		return values, 0, nil, errors.New("timeout must be between 1 and 60 seconds")
+		return values, 0, nil, errors.New("超时时间必须介于 1 到 60 秒")
 	}
 	tags, err := parseTags(values.Tags)
 	if err != nil {

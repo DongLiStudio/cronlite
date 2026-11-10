@@ -128,7 +128,7 @@ func TestControlFleetViewsCountsTimelineAndBoundaries(t *testing.T) {
 				t.Fatalf("%d: %s", rec.Code, rec.Body.String())
 			}
 			body := html.UnescapeString(rec.Body.String())
-			for _, text := range []string{"120", "100", "20", "Payments", "team=payments", "Job Control Center"} {
+			for _, text := range []string{"120", "100", "20", "Payments", "team=payments", "定时任务"} {
 				if !strings.Contains(body, text) {
 					t.Fatalf("missing %q", text)
 				}
@@ -204,14 +204,14 @@ func TestRunsBoardUsesPersistedStatusAndEvidence(t *testing.T) {
 		rec := httptest.NewRecorder()
 		handler.ServeHTTP(rec, authenticatedRequest("GET", "/admin/runs?window=7d&view="+view+"&status=failed&trigger_type=manual", nil, sessions))
 		body := rec.Body.String()
-		if rec.Code != 200 || strings.Contains(body, "upstream <script>") || !strings.Contains(body, "4 matching executions") {
+		if rec.Code != 200 || strings.Contains(body, "upstream <script>") || !strings.Contains(body, "匹配 4 条") {
 			t.Fatalf("runs %d %s", rec.Code, body)
 		}
-		if view == "table" && !strings.Contains(body, "Latest HTTP 503") {
-			t.Fatal("table lost delivery evidence")
+		if view == "table" && !strings.Contains(body, "最近一次 HTTP 503") {
+			t.Fatalf("table lost delivery evidence: %s", body)
 		}
 		if view == "board" {
-			if strings.Contains(body, "delivery attempts") || strings.Contains(body, "<dl>") || strings.Contains(body, "Execution details →") {
+			if strings.Contains(body, "投递尝试") || strings.Contains(body, "<dl>") || strings.Contains(body, "打开执行记录") {
 				t.Fatal("board cards still show execution details")
 			}
 			for _, run := range svc.runs.Runs {
@@ -257,7 +257,7 @@ func TestBulkPreviewConfirmationResultsAndViews(t *testing.T) {
 	}
 	rec = send("GET", rec.Header().Get("Location"), nil)
 	body := html.UnescapeString(rec.Body.String())
-	if rec.Code != 200 || !strings.Contains(body, "no changes made") || !strings.Contains(body, "required") || !strings.Contains(body, "Payroll") {
+	if rec.Code != 200 || !strings.Contains(body, "尚未修改任何任务") || !strings.Contains(body, "required") || !strings.Contains(body, "Payroll") {
 		t.Fatalf("preview %d %s", rec.Code, body)
 	}
 	confirmPath := "/admin/bulk/" + id.String() + "/confirm"
@@ -273,7 +273,7 @@ func TestBulkPreviewConfirmationResultsAndViews(t *testing.T) {
 	svc.batch.ConfirmedAt = &now
 	svc.batch.Items = []domain.BulkItem{{Result: "applied"}, {Result: "unchanged"}, {Result: "conflict"}, {Result: "unavailable"}, {Result: "failed"}}
 	rec = send("GET", "/admin/bulk/"+id.String(), nil)
-	if rec.Code != 200 || !strings.Contains(rec.Body.String(), "1 applied · 1 unchanged · 3 not applied") || strings.Contains(rec.Body.String(), "Confirm pause</button>") {
+	if rec.Code != 200 || !strings.Contains(rec.Body.String(), "已应用 1 个 · 无需变更 1 个 · 未应用 3 个") || strings.Contains(rec.Body.String(), "确认批量暂停</button>") {
 		t.Fatal("incorrect persisted results")
 	}
 	svc.batches = []domain.BulkBatch{svc.batch}
@@ -345,7 +345,7 @@ func TestJobDetailReportsUncalculableScheduleAndValidatesExecutionFilters(t *tes
 	handler := newTestHandler(t, svc, sessions, nil)
 	rec := httptest.NewRecorder()
 	handler.ServeHTTP(rec, authenticatedRequest("GET", "/admin/jobs/"+id.String(), nil, sessions))
-	if rec.Code != 200 || !strings.Contains(rec.Body.String(), "no calculable next run") || strings.Contains(rec.Body.String(), "while paused") {
+	if rec.Code != 200 || !strings.Contains(rec.Body.String(), "无法计算下次运行时间") || strings.Contains(rec.Body.String(), "任务已暂停") {
 		t.Fatalf("schedule evidence: %d %s", rec.Code, rec.Body.String())
 	}
 	for _, q := range []string{"page=9223372036854775807", "status=waiting", "trigger_type=invalid"} {
